@@ -3,13 +3,10 @@
   "version": "1.0.0",
   "main": "SimpleHttpServerApplication.js",
   "license": "MIT",
-  "description": "front end SPA frameworks",
+  "description": "back end http server frameworks",
   "keywords": [
-    "front",
-    "spa",
-    "SPA",
     "module",
-    "front-end",
+    "back-end",
     "framwork",
     "node"
   ],

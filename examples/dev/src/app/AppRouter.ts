@@ -4,13 +4,13 @@ import {Hello} from "./features/hello";
 import {Index} from "./features/Index";
 import {UsersRouter} from "./features/users/UsersRouter";
 
-@Sim({})
+@Sim()
 export class AppRouter extends Router {
     '' = Index
     '/' = Index
     '/hello' = Hello
 
     constructor() {
-        super('',[UsersRouter]);
+        super('', [UsersRouter]);
     }
 }

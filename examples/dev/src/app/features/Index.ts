@@ -3,10 +3,9 @@ import {IncomingMessage, ServerResponse} from "http";
 import {Sim} from "simple-boot-core/decorators/SimDecorator";
 import {Before} from "simple-boot-core/decorators/aop/AOPDecorator";
 
-@Sim({})
+@Sim()
 export class Index extends ReceiveModule {
     receive(req: IncomingMessage, res: ServerResponse) {
-        console.log('request', req.url, req.method)
         res.writeHead(200, {'Content-Type': 'text/plain'});
         res.write("11111111111111Hello World\n\n");
         var text = 'Create Server test\n';
