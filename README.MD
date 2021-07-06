@@ -2,26 +2,28 @@ SIMPLE-BOOT-HTTP-SERVER
 ===
 
 ```typescript
-const opiton = new HttpServerOption(AppRouter);
-new SimpleBootHttpServer(opiton).run();
+new SimpleBootHttpServer(AppRouter, new HttpServerOption()).run();
 ```
 ```typescript
-@Sim({})
+@Sim()
 export class AppRouter extends Router {
     '' = Index
     '/' = Index
     '/hello' = Hello
 
     constructor() {
-        super('',[UsersRouter]);
+        super('', [UsersRouter]);
+    }
+    notFound(url: Intent): ConstructorType<Module> | undefined {
+        return NotFound;
     }
 }
+
 ```
 ```typescript
-@Sim({})
-export class Index extends ReceiveModule {
+@Sim()
+export class Index extends HttpModule {
     receive(req: IncomingMessage, res: ServerResponse) {
-        console.log('request', req.url, req.method)
         res.writeHead(200, {'Content-Type': 'text/plain'});
         res.write("11111111111111Hello World\n\n");
         var text = 'Create Server test\n';
@@ -29,5 +31,4 @@ export class Index extends ReceiveModule {
         res.end(text);
     }
 }
-
 ```
