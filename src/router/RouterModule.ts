@@ -1,7 +1,7 @@
-import {Router} from './Router';
-import {ReceiveModule} from "../module/ReceiveModule";
+import {HttpRouter} from './HttpRouter';
+import {HttpModule} from "../module/HttpModule";
 
 export class RouterModule {
-    constructor(public router?: Router, public module?: ReceiveModule) {
+    constructor(public router?: HttpRouter, public module?: HttpModule) {
     }
 }

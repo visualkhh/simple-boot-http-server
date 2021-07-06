@@ -1,9 +1,9 @@
-import {ReceiveModule} from "simple-boot-http-server/module/ReceiveModule";
+import {HttpModule} from "simple-boot-http-server/module/HttpModule";
 import {IncomingMessage, ServerResponse} from "http";
 import {Sim} from "simple-boot-core/decorators/SimDecorator";
 
 @Sim({})
-export class Hello extends ReceiveModule {
+export class Hello extends HttpModule {
 
     receive(req: IncomingMessage, res: ServerResponse) {
         console.log('request', req.url, req.method)

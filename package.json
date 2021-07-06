@@ -1,6 +1,6 @@
 {
   "name": "simple-boot-http-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "SimpleHttpServerApplication.js",
   "license": "MIT",
   "description": "back end http server frameworks",
@@ -53,7 +53,7 @@
     "build": "rm -rf dist && tsc --outDir dist --declarationDir dist",
     "npm-build": "rm -rf dist && tsc --outDir dist --declarationDir dist && cp package.json dist && cp README.MD dist",
     "npm-publish": "npm run npm-build && npm publish ./dist",
-    "dev": "",
+    "dev": "npm run dev --workspace=dev",
     "tsc": "tsc",
     "test": "jest --detectOpenHandles --forceExit"
   },
@@ -78,6 +78,6 @@
   "dependencies": {
     "reflect-metadata": "^0.1.13",
     "rxjs": "^6.6.7",
-    "simple-boot-core": "^1.0.5"
+    "simple-boot-core": "^1.0.7"
   }
 }

@@ -2,14 +2,14 @@ import {HttpModule} from "simple-boot-http-server/module/HttpModule";
 import {IncomingMessage, ServerResponse} from "http";
 import {Sim} from "simple-boot-core/decorators/SimDecorator";
 
-@Sim({})
-export class Index extends HttpModule {
+@Sim()
+export class NotFound extends HttpModule {
     receive(req: IncomingMessage, res: ServerResponse) {
         console.log('request', req.url, req.method)
         res.writeHead(200, {'Content-Type': 'text/plain'});
-        res.write("user index\n\n");
-        var text = 'Create Server test\n';
-        text += 'Server running at http://localhost:8081/ \n';
+        res.write("NotFound index\n\n");
+        var text = 'NotFound test\n';
+        text += 'SNotFound/ \n';
         res.end(text);
     }
 }
