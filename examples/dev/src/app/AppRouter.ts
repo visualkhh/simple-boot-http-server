@@ -18,6 +18,6 @@ export class AppRouter extends Router {
         super('', [UsersRouter]);
     }
     notFound(url: Intent): ConstructorType<Module> | undefined {
-        return NotFound;
+        return undefined;
     }
 }

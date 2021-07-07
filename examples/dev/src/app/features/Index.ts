@@ -1,7 +1,7 @@
 import {HttpModule} from "simple-boot-http-server/module/HttpModule";
 import {IncomingMessage, ServerResponse} from "http";
 import {Sim} from "simple-boot-core/decorators/SimDecorator";
-import {Before} from "simple-boot-core/decorators/aop/AOPDecorator";
+import {After, Before} from "simple-boot-core/decorators/aop/AOPDecorator";
 
 @Sim()
 export class Index extends HttpModule {
@@ -11,5 +11,14 @@ export class Index extends HttpModule {
         var text = 'Create Server test\n';
         text += 'Server running at http://localhost:8081/ \n';
         res.end(text);
+    }
+
+    @Before({property: 'receive'})
+    test() {
+        console.log('---')
+    }
+    @After({property: 'receive'})
+    test2() {
+        console.log('--22222-')
     }
 }
