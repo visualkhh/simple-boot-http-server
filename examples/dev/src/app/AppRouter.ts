@@ -13,6 +13,7 @@ export class AppRouter extends Router {
     '' = Index
     '/' = Index
     '/hello' = Hello
+    '/hello/:zzz' = Hello
 
     constructor() {
         super('', [UsersRouter]);
