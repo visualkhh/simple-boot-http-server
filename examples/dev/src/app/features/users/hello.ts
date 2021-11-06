@@ -1,11 +1,11 @@
-import {HttpModule} from "simple-boot-http-server/module/HttpModule";
 import {IncomingMessage, ServerResponse} from "http";
 import {Sim} from "simple-boot-core/decorators/SimDecorator";
+import { OnReceiver } from 'simple-boot-http-server/lifecycle/OnReceiver';
 
 @Sim({})
-export class Hello extends HttpModule {
+export class Hello implements OnReceiver {
 
-    receive(req: IncomingMessage, res: ServerResponse) {
+    onReceive(req: IncomingMessage, res: ServerResponse) {
         console.log('request', req.url, req.method)
         res.writeHead(200, {'Content-Type': 'text/plain'});
         res.write("user hello\n\n");

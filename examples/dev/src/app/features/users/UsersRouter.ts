@@ -1,15 +1,15 @@
-import {Sim} from "simple-boot-core/decorators/SimDecorator";
+import { Router, Sim } from "simple-boot-core/decorators/SimDecorator";
 import {Index} from "./Index";
 import {Hello} from "./hello";
-import {Router} from "simple-boot-core/route/Router";
 
 @Sim({})
-export class UsersRouter extends Router {
-    '' = Index
-    '/' = Index
-    '/hello' = Hello
-
-    constructor() {
-        super('/users');
+@Router({
+    path: '/users',
+    route: {
+        '': Index,
+        '/': Index,
+        '/hello': Hello
     }
+})
+export class UsersRouter {
 }

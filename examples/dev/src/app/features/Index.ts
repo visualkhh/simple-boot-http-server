@@ -1,11 +1,11 @@
-import {HttpModule} from "simple-boot-http-server/module/HttpModule";
 import {IncomingMessage, ServerResponse} from "http";
 import {Sim} from "simple-boot-core/decorators/SimDecorator";
 import {After, Before} from "simple-boot-core/decorators/aop/AOPDecorator";
+import { OnReceiver } from 'simple-boot-http-server/lifecycle/OnReceiver';
 
 @Sim()
-export class Index extends HttpModule {
-    receive(req: IncomingMessage, res: ServerResponse) {
+export class Index implements OnReceiver {
+    onReceive(req: IncomingMessage, res: ServerResponse) {
         res.writeHead(200, {'Content-Type': 'text/plain'});
         res.write("11111111111111Hello World\n\n");
         var text = 'Create Server test\n';

@@ -2,13 +2,11 @@ import {SimpleApplication} from 'simple-boot-core/SimpleApplication';
 import {HttpServerOption} from "./option/HttpServerOption";
 import {ConstructorType} from 'simple-boot-core/types/Types';
 import {Intent} from 'simple-boot-core/intent/Intent';
-import {HttpModule} from './module/HttpModule';
-import {Router} from 'simple-boot-core/route/Router';
 import {URL} from 'url';
 import {IncomingMessage, Server, ServerResponse} from 'http'
 
 export class SimpleBootHttpServer extends SimpleApplication {
-    constructor(public rootRouter: ConstructorType<Router>, public option: HttpServerOption = new HttpServerOption()) {
+    constructor(public rootRouter: ConstructorType<Object>, public option: HttpServerOption = new HttpServerOption()) {
         super(rootRouter, option);
     }
 
@@ -19,7 +17,14 @@ export class SimpleBootHttpServer extends SimpleApplication {
             const url = new URL(req.url!, 'http://' + req.headers.host);
             const intent = new Intent(req.url ?? '', url);
             this.routing(intent).then(it => {
-                it.getModuleInstance<HttpModule>()?.receive(req, res);
+                console.log('routring-->', it)
+                const moduleInstance = it.getModuleInstance<any>();
+                if (moduleInstance) {
+                    moduleInstance?.onReceive?.(req, res);
+                } else {
+                    it.router?.onNotFoundReceiver?.(req, res);
+                }
+                res.end();
             }).catch(it => {
                 console.log('catch-->', it)
             })

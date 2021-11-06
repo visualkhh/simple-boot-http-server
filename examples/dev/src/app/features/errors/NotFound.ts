@@ -1,10 +1,10 @@
-import {HttpModule} from "simple-boot-http-server/module/HttpModule";
 import {IncomingMessage, ServerResponse} from "http";
 import {Sim} from "simple-boot-core/decorators/SimDecorator";
+import { OnReceiver } from 'simple-boot-http-server/lifecycle/OnReceiver';
 
 @Sim()
-export class NotFound extends HttpModule {
-    receive(req: IncomingMessage, res: ServerResponse) {
+export class NotFound implements OnReceiver{
+    onReceive(req: IncomingMessage, res: ServerResponse) {
         console.log('request', req.url, req.method)
         res.writeHead(200, {'Content-Type': 'text/plain'});
         res.write("NotFound index\n\n");
