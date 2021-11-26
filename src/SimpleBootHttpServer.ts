@@ -1,5 +1,5 @@
 import {SimpleApplication} from 'simple-boot-core/SimpleApplication';
-import {HttpServerOption} from "./option/HttpServerOption";
+import {HttpServerOption} from './option/HttpServerOption';
 import {ConstructorType} from 'simple-boot-core/types/Types';
 import {Intent} from 'simple-boot-core/intent/Intent';
 import {URL} from 'url';
@@ -12,18 +12,21 @@ export class SimpleBootHttpServer extends SimpleApplication {
 
     public run() {
         super.run();
-        let server = this.option.serverOption ? new Server(this.option.serverOption) : new Server();
+        const server = this.option.serverOption ? new Server(this.option.serverOption) : new Server();
         server.on('request', (req: IncomingMessage, res: ServerResponse) => {
+            this.option.filters.forEach(it => it.on?.(req, res));
             const url = new URL(req.url!, 'http://' + req.headers.host);
             const intent = new Intent(req.url ?? '', url);
             this.routing(intent).then(it => {
-                console.log('routring-->', it)
+                // console.log('routing-->', it)
                 const moduleInstance = it.getModuleInstance<any>();
+                this.option.filters.forEach(it => it.before?.(req, res, moduleInstance));
                 if (moduleInstance) {
                     moduleInstance?.onReceive?.(req, res);
                 } else {
                     it.router?.onNotFoundReceiver?.(req, res);
                 }
+                this.option.filters.slice().reverse().forEach(it => it.after?.(req, res, moduleInstance));
                 res.end();
             }).catch(it => {
                 console.log('catch-->', it)
