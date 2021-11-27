@@ -4,7 +4,6 @@ import {ConstructorType} from 'simple-boot-core/types/Types';
 import {Intent} from 'simple-boot-core/intent/Intent';
 import {URL} from 'url';
 import {IncomingMessage, Server, ServerResponse} from 'http'
-
 export class SimpleBootHttpServer extends SimpleApplication {
     constructor(public rootRouter: ConstructorType<Object>, public option: HttpServerOption = new HttpServerOption()) {
         super(rootRouter, option);
@@ -18,7 +17,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
             const url = new URL(req.url!, 'http://' + req.headers.host);
             const intent = new Intent(req.url ?? '', url);
             this.routing(intent).then(it => {
-                // console.log('routing-->', it)
+                console.log('routing-->', it)
                 const moduleInstance = it.getModuleInstance<any>();
                 this.option.filters.forEach(it => it.before?.(req, res, moduleInstance));
                 if (moduleInstance) {

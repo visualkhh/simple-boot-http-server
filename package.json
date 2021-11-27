@@ -1,7 +1,7 @@
 {
   "name": "simple-boot-http-server",
   "version": "1.0.2",
-  "main": "SimpleHttpServerApplication.js",
+  "main": "SimpleBootHttpServer.js",
   "license": "MIT",
   "description": "back end http server frameworks",
   "keywords": [
@@ -27,11 +27,6 @@
     "type": "git",
     "url": "https://github.com/visualkhh/simple-boot-http-server"
   },
-  "workspaces": [
-    "./",
-    "examples/dev",
-    "templates/http"
-  ],
   "jest": {
     "transform": {
       "^.+\\.ts$": "ts-jest"
@@ -56,6 +51,7 @@
     "npm-publish": "npm run npm-build && npm publish ./dist",
     "dev": "npm run dev --workspace=dev",
     "tsc": "tsc",
+    "tsc:watch": "rm -rf ./dist && mkdir dist && cp package.json dist && tsc --watch --sourceMap true",
     "test": "jest --detectOpenHandles --forceExit"
   },
   "devDependencies": {
