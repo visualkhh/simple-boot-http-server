@@ -7,6 +7,7 @@ import { getGETS, MappingConfig, SaveMappingConfig } from './decorators/MethodMa
 import { HttpStatus } from './codes/HttpStatus';
 import { HttpHeaders } from './codes/HttpHeaders';
 import { Mimes } from './codes/Mimes';
+import { Filter } from './filters/Filter';
 
 export class SimpleBootHttpServer extends SimpleApplication {
     constructor(public rootRouter: ConstructorType<Object>, public option: HttpServerOption = new HttpServerOption()) {
@@ -25,9 +26,15 @@ export class SimpleBootHttpServer extends SimpleApplication {
         server.on('request', async (req: IncomingMessage, res: ServerResponse) => {
             try {
                 if (this.option.filters) {
+                    const filter: {filter: Filter, sw: boolean}[] = [];
                     for (const it of this.option.filters) {
                         const execute = typeof it === 'function' ? this.simstanceManager.getOrNewSim(it) : it;
-                        if (execute?.before && !await execute.before(req, res, this)) {
+                        let sw = true;
+                        if (execute?.before) {
+                            sw = await execute.before(req, res, this);
+                            filter.push({filter: execute, sw});
+                        }
+                        if (!sw) {
                             break;
                         }
                     }
@@ -61,9 +68,8 @@ export class SimpleBootHttpServer extends SimpleApplication {
 
 
                     // after
-                    for (const it of this.option.filters.slice().reverse()) {
-                        const execute = typeof it === 'function' ? this.simstanceManager.getOrNewSim(it) : it;
-                        if (execute?.after && !await execute.after(req, res, this)) {
+                    for (const it of filter.reverse()) {
+                        if (it.filter?.after && !await it.filter.after(req, res, this, it.sw)) {
                             break;
                         }
                     }
