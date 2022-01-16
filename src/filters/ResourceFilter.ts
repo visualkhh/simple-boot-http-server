@@ -12,7 +12,7 @@ export class ResourceFilter implements Filter {
     }
 
     async before(req: IncomingMessage, res: ServerResponse) {
-        const url = req.url ?? '';
+        const url = (req.url ?? '').replace(/\.\./g, '');
         let sw = true;
         const regExps = this.resourceRegex.filter(it => RegExp(it).test(url))
         for (const it of regExps) {
