@@ -9,6 +9,15 @@ export class RequestResponse {
     constructor(public req: IncomingMessage, public res: ServerResponse) {
     }
 
+    get reqRemoteAddress(): string | undefined {
+        const ipHeader = this.req.headers['x-forwarded-for'];
+        let ip = this.req.socket.remoteAddress;
+        if (Array.isArray(ipHeader)) {
+            ip = ipHeader.join(',').split(',').shift();
+        }
+        return ip;
+    }
+
     get reqUrl(): string {
         return this.req.url ?? '';
     }
