@@ -14,6 +14,8 @@ export class RequestResponse {
         let ip = this.req.socket.remoteAddress;
         if (Array.isArray(ipHeader)) {
             ip = ipHeader.join(',').split(',').shift();
+        } else if (typeof ipHeader === 'string') {
+            ip = ipHeader.split(',').shift();
         }
         return ip;
     }
