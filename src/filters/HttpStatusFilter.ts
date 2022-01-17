@@ -8,7 +8,8 @@ export class HttpStatusFilter implements Filter {
     }
 
     async before(req: IncomingMessage, res: ServerResponse) {
-        res.writeHead(this.httpStatus);
+        // res.writeHead(this.httpStatus);
+        res.statusCode = this.httpStatus;
         res.end();
         return false;
     }

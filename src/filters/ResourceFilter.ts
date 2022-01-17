@@ -19,8 +19,10 @@ export class ResourceFilter implements Filter {
             const resourcePath = path.join(this.resourceDistPath, url); // url.replace(it, '')
             if (fs.existsSync(resourcePath)) {
                 const header = {} as any;
-                header[HttpHeaders.ContentType] = mime.lookup(resourcePath);
-                res.writeHead(HttpStatus.Ok, header);
+                // header[HttpHeaders.ContentType] = mime.lookup(resourcePath);
+                // res.writeHead(HttpStatus.Ok, header);
+                res.statusCode = HttpStatus.Ok;
+                res.setHeader(HttpHeaders.ContentType, mime.lookup(resourcePath).toString());
                 res.end(fs.readFileSync(resourcePath));
                 sw = false;
                 break;
