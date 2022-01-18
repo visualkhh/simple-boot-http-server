@@ -6,6 +6,7 @@ export enum Mimes {
     ApplicationXWwwFormUrlencoded = "application/x-www-form-urlencoded",
     TextPlain = "text/plain",
     TextHtml = "text/html",
+    All = "*/*",
     TextCss = "text/css",
     TextJavascript = "text/javascript",
     TextXml = "text/xml",
