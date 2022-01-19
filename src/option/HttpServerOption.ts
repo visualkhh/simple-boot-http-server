@@ -13,6 +13,7 @@ export class HttpServerOption extends SimOption {
     public serverOption?: ServerOptions;
     public listen: Listen = {port: 8081};
     public filters?: (Filter|ConstructorType<Filter>)[] = [];
+    public requestEndPoints?: EndPoint[];
     public closeEndPoints?: EndPoint[];
     public errorEndPoints?: EndPoint[];
     public globalAdvice?: Advice;

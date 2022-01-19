@@ -25,6 +25,16 @@ export class SimpleBootHttpServer extends SimpleApplication {
         const server = this.option.serverOption ? new Server(this.option.serverOption) : new Server();
         server.on('request', async (req: IncomingMessage, res: ServerResponse) => {
             try {
+
+                if (this.option.requestEndPoints) {
+                    for (const it of this.option.requestEndPoints) {
+                        try {
+                            it.endPoint(req, res);
+                        } catch (e) {
+                        }
+                    }
+                }
+
                 if (this.option.filters) {
                     const filter: {filter: Filter, sw: boolean}[] = [];
                     for (const it of this.option.filters) {
