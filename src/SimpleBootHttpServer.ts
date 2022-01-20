@@ -24,6 +24,13 @@ export class SimpleBootHttpServer extends SimpleApplication {
 
         const server = this.option.serverOption ? new Server(this.option.serverOption) : new Server();
         server.on('request', async (req: IncomingMessage, res: ServerResponse) => {
+            // const promise = new Promise(r => {
+            //     setTimeout(() => {
+            //         r(req.url);
+            //     }, 9000);
+            // })
+            // const data = await promise;
+            // res.end(data);
             try {
 
                 if (this.option.requestEndPoints) {
