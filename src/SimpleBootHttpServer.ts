@@ -3,7 +3,16 @@ import { HttpServerOption } from './option/HttpServerOption';
 import { ConstructorType } from 'simple-boot-core/types/Types';
 import { IncomingMessage, Server, ServerResponse } from 'http'
 import { RequestResponse } from './models/RequestResponse';
-import { getGETS, MappingConfig, SaveMappingConfig } from './decorators/MethodMapping';
+import {
+    getCONNECTS,
+    getDELETES,
+    getGETS, getHEADS,
+    getPATCHS,
+    getPOSTS,
+    getPUTS, getTRACES,
+    MappingConfig,
+    SaveMappingConfig
+} from './decorators/MethodMapping';
 import { HttpStatus } from './codes/HttpStatus';
 import { HttpHeaders } from './codes/HttpHeaders';
 import { Mimes } from './codes/Mimes';
@@ -66,6 +75,19 @@ export class SimpleBootHttpServer extends SimpleApplication {
                             if ('GET' === rr.reqMethod()) {
                                 methods.push(...getGETS(moduleInstance) ?? []);
                             } else if ('POST' === rr.reqMethod()) {
+                                methods.push(...getPOSTS(moduleInstance) ?? []);
+                            } else if ('DELETE' === rr.reqMethod()) {
+                                methods.push(...getDELETES(moduleInstance) ?? []);
+                            } else if ('PUT' === rr.reqMethod()) {
+                                methods.push(...getPUTS(moduleInstance) ?? []);
+                            } else if ('PATCH' === rr.reqMethod()) {
+                                methods.push(...getPATCHS(moduleInstance) ?? []);
+                            } else if ('HEAD' === rr.reqMethod()) {
+                                methods.push(...getHEADS(moduleInstance) ?? []);
+                            } else if ('TRACE' === rr.reqMethod()) {
+                                methods.push(...getTRACES(moduleInstance) ?? []);
+                            } else if ('CONNECT' === rr.reqMethod()) {
+                                methods.push(...getCONNECTS(moduleInstance) ?? []);
                             }
                             const otherStorage = new Map<ConstructorType<any>, any>();
                             otherStorage.set(RequestResponse, rr);
