@@ -136,6 +136,10 @@ export class RequestResponse {
        return this.res.write(data, encoding);
     }
 
+    resWriteJson(data: any, encoding: BufferEncoding = 'utf8') {
+       return this.resWrite(JSON.stringify(data), encoding);
+    }
+
     resSetHeader(key: HttpHeaders | string, value: string | string[]): void {
         this.res.setHeader(key.toLowerCase(), value);
     }

@@ -11,16 +11,31 @@ export type Listen = { port?: number, hostname?: string, backlog?: number, liste
 
 export class HttpServerOption extends SimOption {
     public serverOption?: ServerOptions;
-    public listen: Listen = {port: 8081};
-    public filters?: (Filter|ConstructorType<Filter>)[] = [];
-    public requestEndPoints?: EndPoint[];
-    public closeEndPoints?: EndPoint[];
-    public errorEndPoints?: EndPoint[];
-    public globalAdvice?: Advice;
+    public listen: Listen;
+    public filters?: (Filter|ConstructorType<Filter>)[];
+    public requestEndPoints?: (EndPoint|ConstructorType<EndPoint>)[];
+    public closeEndPoints?: (EndPoint|ConstructorType<EndPoint>)[];
+    public errorEndPoints?: (EndPoint|ConstructorType<EndPoint>)[];
+    public globalAdvice?: Advice|ConstructorType<Advice>;
     // public initializers: Initializer[] = [];
     // public initializersCallBack?: (app: SimpleBootHttpServer, initializerReturns: any[]) => void;
-    constructor(advice: ConstructorType<any>[] = []) {
+    constructor({serverOption, listen = {port: 8081}, filters, requestEndPoints, closeEndPoints, errorEndPoints, globalAdvice}: {
+                serverOption?: ServerOptions,
+                listen?: Listen,
+                filters?: (Filter|ConstructorType<Filter>)[],
+                requestEndPoints?: (EndPoint|ConstructorType<EndPoint>)[],
+                closeEndPoints?: (EndPoint|ConstructorType<EndPoint>)[],
+                errorEndPoints?: (EndPoint|ConstructorType<EndPoint>)[],
+                globalAdvice?: Advice|ConstructorType<Advice>,
+                } = {}, advice: ConstructorType<any>[] = []) {
         super(advice);
+        this.serverOption = serverOption;
+        this.listen = listen;
+        this.filters = filters;
+        this.requestEndPoints = requestEndPoints;
+        this.closeEndPoints = closeEndPoints;
+        this.errorEndPoints = errorEndPoints;
+        this.globalAdvice = globalAdvice;
     }
 }
 

@@ -45,7 +45,8 @@ export class SimpleBootHttpServer extends SimpleApplication {
                 if (this.option.requestEndPoints) {
                     for (const it of this.option.requestEndPoints) {
                         try {
-                            it.endPoint(req, res);
+                            const execute = typeof it === 'function' ? this.simstanceManager.getOrNewSim(it) : it;
+                            execute?.endPoint(req, res);
                         } catch (e) {
                         }
                     }
@@ -114,14 +115,16 @@ export class SimpleBootHttpServer extends SimpleApplication {
                     }
                 }
             } catch (e) {
-                this.option.globalAdvice?.catch(e, req, res);
+                const execute = typeof this.option.globalAdvice === 'function' ? this.simstanceManager.getOrNewSim(this.option.globalAdvice) : this.option.globalAdvice;
+                execute?.catch(e, req, res);
 
             }
             res.on('close', () => {
                 if (this.option.closeEndPoints) {
                     for (const it of this.option.closeEndPoints) {
                         try {
-                            it.endPoint(req, res);
+                            const execute = typeof it === 'function' ? this.simstanceManager.getOrNewSim(it) : it;
+                            execute?.endPoint(req, res);
                         } catch (e) {
                         }
                     }
@@ -131,7 +134,8 @@ export class SimpleBootHttpServer extends SimpleApplication {
                 if (this.option.errorEndPoints) {
                     for (const it of this.option.errorEndPoints) {
                         try {
-                            it.endPoint(req, res);
+                            const execute = typeof it === 'function' ? this.simstanceManager.getOrNewSim(it) : it;
+                            execute?.endPoint(req, res);
                         } catch (e) {
                         }
                     }
@@ -159,5 +163,6 @@ export class SimpleBootHttpServer extends SimpleApplication {
         //     })
         // });
         // server.listen(this.option.listen.port, this.option.listen.hostname, this.option.listen.backlog, this.option.listen.listeningListener)
+        return this;
     }
 }
