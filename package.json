@@ -47,6 +47,8 @@
   "scripts": {
     "build": "rm -rf dist && tsc --outDir dist --declarationDir dist",
     "build:watch": "rm -rf dist && tsc --watch --outDir dist --declarationDir dist",
+    "build:watch:package": "rm -rf dist && mkdir dist && cp package.json dist/package.json && tsc --watch --outDir dist --declarationDir dist",
+    "npm-build:current": "rm -rf dist && tsc --outDir dist --declarationDir dist && cp package.json dist/package.json && cp README.MD dist",
     "npm-build": "rm -rf dist && tsc --outDir dist --declarationDir dist && cp package-prod.json dist/package.json && cp README.MD dist",
     "npm-publish": "npm run npm-build && npm publish ./dist",
     "dev": "npm run dev --workspace=dev",
