@@ -16,7 +16,6 @@ import jsonpatch, { Operation as JsonOperation } from 'fast-json-patch';
 // }
 export type Operation = JsonOperation;
 export class PatchJson {
-
     constructor(private patch: Operation[]) {
     }
 

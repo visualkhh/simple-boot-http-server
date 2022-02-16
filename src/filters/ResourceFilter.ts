@@ -7,7 +7,6 @@ import {HttpHeaders} from '../codes/HttpHeaders';
 import {HttpStatus} from '../codes/HttpStatus';
 
 export class ResourceFilter implements Filter {
-
     constructor(private resourceDistPath: string, private resourceRegex: string[] = []) {
     }
 

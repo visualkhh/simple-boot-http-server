@@ -3,7 +3,6 @@ import {IncomingMessage, ServerResponse} from 'http';
 import { RequestResponse } from '../models/RequestResponse';
 
 export class ThrowFilter implements Filter {
-
     constructor(private error: any) {
     }
 

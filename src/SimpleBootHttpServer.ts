@@ -10,7 +10,6 @@ import {
     getPATCHS,
     getPOSTS,
     getPUTS, getTRACES,
-    MappingConfig,
     SaveMappingConfig
 } from './decorators/MethodMapping';
 import { HttpStatus } from './codes/HttpStatus';
@@ -41,7 +40,6 @@ export class SimpleBootHttpServer extends SimpleApplication {
             // const data = await promise;
             // res.end(data);
             try {
-
                 if (this.option.requestEndPoints) {
                     for (const it of this.option.requestEndPoints) {
                         try {
@@ -73,21 +71,21 @@ export class SimpleBootHttpServer extends SimpleApplication {
                         const moduleInstance = data.getModuleInstance();
                         if (moduleInstance) {
                             const methods: SaveMappingConfig[] = [];
-                            if ('GET' === rr.reqMethod()) {
+                            if (rr.reqMethod() === 'GET') {
                                 methods.push(...getGETS(moduleInstance) ?? []);
-                            } else if ('POST' === rr.reqMethod()) {
+                            } else if (rr.reqMethod() === 'POST') {
                                 methods.push(...getPOSTS(moduleInstance) ?? []);
-                            } else if ('DELETE' === rr.reqMethod()) {
+                            } else if (rr.reqMethod() === 'DELETE') {
                                 methods.push(...getDELETES(moduleInstance) ?? []);
-                            } else if ('PUT' === rr.reqMethod()) {
+                            } else if (rr.reqMethod() === 'PUT') {
                                 methods.push(...getPUTS(moduleInstance) ?? []);
-                            } else if ('PATCH' === rr.reqMethod()) {
+                            } else if (rr.reqMethod() === 'PATCH') {
                                 methods.push(...getPATCHS(moduleInstance) ?? []);
-                            } else if ('HEAD' === rr.reqMethod()) {
+                            } else if (rr.reqMethod() === 'HEAD') {
                                 methods.push(...getHEADS(moduleInstance) ?? []);
-                            } else if ('TRACE' === rr.reqMethod()) {
+                            } else if (rr.reqMethod() === 'TRACE') {
                                 methods.push(...getTRACES(moduleInstance) ?? []);
-                            } else if ('CONNECT' === rr.reqMethod()) {
+                            } else if (rr.reqMethod() === 'CONNECT') {
                                 methods.push(...getCONNECTS(moduleInstance) ?? []);
                             }
                             const otherStorage = new Map<ConstructorType<any>, any>();
@@ -98,14 +96,13 @@ export class SimpleBootHttpServer extends SimpleApplication {
                                 const headers = it.config.resHeaders;
                                 rr.res.writeHead(status, headers);
                                 const contentType = Object.entries(headers ?? {}).find(([key, value]) => key.toLowerCase() === HttpHeaders.ContentType.toLowerCase());
-                                if ((contentType?.[1]??'').toLowerCase().indexOf(Mimes.ApplicationJson.toLowerCase()) >= 0 ) {
+                                if ((contentType?.[1] ?? '').toLowerCase().indexOf(Mimes.ApplicationJson.toLowerCase()) >= 0) {
                                     data = JSON.stringify(data);
                                 }
                                 rr.res.end(data);
                             })
                         }
                     }
-
 
                     // after
                     for (const it of filter.reverse()) {
@@ -117,7 +114,6 @@ export class SimpleBootHttpServer extends SimpleApplication {
             } catch (e) {
                 const execute = typeof this.option.globalAdvice === 'function' ? this.simstanceManager.getOrNewSim(this.option.globalAdvice) : this.option.globalAdvice;
                 execute?.catch(e, req, res);
-
             }
             res.on('close', () => {
                 if (this.option.closeEndPoints) {

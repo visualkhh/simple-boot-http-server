@@ -1,11 +1,11 @@
-import "reflect-metadata";
+import 'reflect-metadata';
 import { ReflectMethod } from 'simple-boot-core/types/Types';
 import { ReflectUtils } from 'simple-boot-core/utils/reflect/ReflectUtils';
-export type SaveMappingConfig = {propertyKey: string | symbol; config: MappingConfig}
 export type MappingConfig = {
     resStatus?: number;
     resHeaders?: {[key: string]: string};
 }
+export type SaveMappingConfig = {propertyKey: string | symbol; config: MappingConfig}
 const GETSMappingMetadataKey = Symbol('GET_METHODS');
 const GETMappingMetadataKey = Symbol('GET_METHOD');
 
@@ -22,7 +22,7 @@ export const getGET = (target: any, propertyKey: string): MappingConfig => {
     return ReflectUtils.getMetadata(GETMappingMetadataKey, target, propertyKey);
 }
 export const getGETS = (target: any): SaveMappingConfig[] => {
-    if (null != target && undefined != target && typeof target === 'object') {
+    if (target !== null && undefined !== target && typeof target === 'object') {
         target = target.constructor;
     }
     return ReflectUtils.getMetadata(GETSMappingMetadataKey, target);
@@ -43,7 +43,7 @@ export const getPOST = (target: any, propertyKey: string): MappingConfig => {
     return ReflectUtils.getMetadata(POSTMappingMetadataKey, target, propertyKey);
 }
 export const getPOSTS = (target: any): SaveMappingConfig[] => {
-    if (null != target && undefined != target && typeof target === 'object') {
+    if (target !== null && undefined !== target && typeof target === 'object') {
         target = target.constructor;
     }
     return ReflectUtils.getMetadata(POSTSMappingMetadataKey, target);
@@ -64,7 +64,7 @@ export const getDELETE = (target: any, propertyKey: string): MappingConfig => {
     return ReflectUtils.getMetadata(DELETEMappingMetadataKey, target, propertyKey);
 }
 export const getDELETES = (target: any): SaveMappingConfig[] => {
-    if (null != target && undefined != target && typeof target === 'object') {
+    if (target !== null && undefined !== target && typeof target === 'object') {
         target = target.constructor;
     }
     return ReflectUtils.getMetadata(DELETESMappingMetadataKey, target);
@@ -85,7 +85,7 @@ export const getPUT = (target: any, propertyKey: string): MappingConfig => {
     return ReflectUtils.getMetadata(PUTMappingMetadataKey, target, propertyKey);
 }
 export const getPUTS = (target: any): SaveMappingConfig[] => {
-    if (null != target && undefined != target && typeof target === 'object') {
+    if (target !== null && undefined !== target && typeof target === 'object') {
         target = target.constructor;
     }
     return ReflectUtils.getMetadata(PUTSMappingMetadataKey, target);
@@ -106,7 +106,7 @@ export const getPATCH = (target: any, propertyKey: string): MappingConfig => {
     return ReflectUtils.getMetadata(PATCHMappingMetadataKey, target, propertyKey);
 }
 export const getPATCHS = (target: any): SaveMappingConfig[] => {
-    if (null != target && undefined != target && typeof target === 'object') {
+    if (target !== null && undefined !== target && typeof target === 'object') {
         target = target.constructor;
     }
     return ReflectUtils.getMetadata(PATCHSMappingMetadataKey, target);
@@ -127,7 +127,7 @@ export const getOPTIONS = (target: any, propertyKey: string): MappingConfig => {
     return ReflectUtils.getMetadata(OPTIONSMappingMetadataKey, target, propertyKey);
 }
 export const getOPTIONSS = (target: any): SaveMappingConfig[] => {
-    if (null != target && undefined != target && typeof target === 'object') {
+    if (target !== null && undefined !== target && typeof target === 'object') {
         target = target.constructor;
     }
     return ReflectUtils.getMetadata(OPTIONSSMappingMetadataKey, target);
@@ -148,7 +148,7 @@ export const getHEAD = (target: any, propertyKey: string): MappingConfig => {
     return ReflectUtils.getMetadata(HEADMappingMetadataKey, target, propertyKey);
 }
 export const getHEADS = (target: any): SaveMappingConfig[] => {
-    if (null != target && undefined != target && typeof target === 'object') {
+    if (target !== null && undefined !== target && typeof target === 'object') {
         target = target.constructor;
     }
     return ReflectUtils.getMetadata(HEADSMappingMetadataKey, target);
@@ -169,7 +169,7 @@ export const getTRACE = (target: any, propertyKey: string): MappingConfig => {
     return ReflectUtils.getMetadata(TRACEMappingMetadataKey, target, propertyKey);
 }
 export const getTRACES = (target: any): SaveMappingConfig[] => {
-    if (null != target && undefined != target && typeof target === 'object') {
+    if (target !== null && undefined !== target && typeof target === 'object') {
         target = target.constructor;
     }
     return ReflectUtils.getMetadata(TRACESMappingMetadataKey, target);
@@ -190,7 +190,7 @@ export const getCONNECT = (target: any, propertyKey: string): MappingConfig => {
     return ReflectUtils.getMetadata(CONNECTMappingMetadataKey, target, propertyKey);
 }
 export const getCONNECTS = (target: any): SaveMappingConfig[] => {
-    if (null != target && undefined != target && typeof target === 'object') {
+    if (target !== null && undefined !== target && typeof target === 'object') {
         target = target.constructor;
     }
     return ReflectUtils.getMetadata(CONNECTSMappingMetadataKey, target);

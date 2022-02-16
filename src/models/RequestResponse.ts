@@ -4,7 +4,7 @@ import { Mimes } from '../codes/Mimes';
 import { Intent } from 'simple-boot-core/intent/Intent';
 import { URL } from 'url';
 // https://masteringjs.io/tutorials/node/http-request
-//https://nodejs.org/ko/docs/guides/anatomy-of-an-http-transaction/
+// https://nodejs.org/ko/docs/guides/anatomy-of-an-http-transaction/
 export class RequestResponse {
     constructor(public req: IncomingMessage, public res: ServerResponse) {
     }
