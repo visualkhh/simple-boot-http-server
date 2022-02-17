@@ -1,8 +1,8 @@
-import { IncomingMessage, OutgoingHttpHeader, OutgoingHttpHeaders, ServerResponse } from 'http';
-import { HttpHeaders } from '../codes/HttpHeaders';
-import { Mimes } from '../codes/Mimes';
-import { Intent } from 'simple-boot-core/intent/Intent';
-import { URL } from 'url';
+import {IncomingMessage, OutgoingHttpHeader, OutgoingHttpHeaders, ServerResponse} from 'http';
+import {HttpHeaders} from '../codes/HttpHeaders';
+import {Mimes} from '../codes/Mimes';
+import {Intent} from 'simple-boot-core/intent/Intent';
+import {URL} from 'url';
 // https://masteringjs.io/tutorials/node/http-request
 // https://nodejs.org/ko/docs/guides/anatomy-of-an-http-transaction/
 export class RequestResponse {
@@ -93,8 +93,15 @@ export class RequestResponse {
         return this.reqHeaderFirst(HttpHeaders.Authorization);
     }
 
-    get resStatusCode() {
-        return this.res.statusCode;
+    resStatusCode(code: undefined): number;
+    resStatusCode(code: number): RequestResponseChain<number>;
+    resStatusCode(code: number|undefined): number | RequestResponseChain<number> {
+        if (code) {
+            this.res.statusCode = code;
+            return new RequestResponseChain<number>(this.req, this.res, this.res.statusCode);
+        } else {
+            return this.res.statusCode;
+        }
     }
 
     resHeaderFirst(key: HttpHeaders | string, defaultValue?: string) {
@@ -126,6 +133,7 @@ export class RequestResponse {
 
     resSetStatusCode(statusCode: number) {
         this.res.statusCode = statusCode;
+        return new RequestResponseChain(this.req, this.res, this.res.statusCode);
     }
 
     // resEnd() {
@@ -133,23 +141,33 @@ export class RequestResponse {
     // }
 
     resWrite(data: string | Buffer, encoding: BufferEncoding = 'utf8') {
-       return this.res.write(data, encoding);
+        return new RequestResponseChain(this.req, this.res, this.res.write(data, encoding));
     }
 
     resWriteJson(data: any, encoding: BufferEncoding = 'utf8') {
-       return this.resWrite(JSON.stringify(data), encoding);
+        return new RequestResponseChain(this.req, this.res, this.resWrite(JSON.stringify(data), encoding));
     }
 
-    resSetHeader(key: HttpHeaders | string, value: string | string[]): void {
-        this.res.setHeader(key.toLowerCase(), value);
+    resSetHeader(key: HttpHeaders | string, value: string | string[]) {
+        return new RequestResponseChain(this.req, this.res, this.res.setHeader(key.toLowerCase(), value));
+    }
+
+    resSetHeaders(headers: { [key: string]: string | string[] }) {
+        Object.entries(headers).forEach(([key, value]) => this.resSetHeader(key, value));
+        return new RequestResponseChain(this.req, this.res);
+    }
+
+    resEnd() {
+        this.res.end();
+        return new RequestResponseChain(this.req, this.res);
     }
 
     resWriteHead(statusCode: number, headers?: OutgoingHttpHeaders | OutgoingHttpHeader[]) {
-        this.res.writeHead(statusCode, headers);
+        return new RequestResponseChain(this.req, this.res, this.res.writeHead(statusCode, headers));
     }
 
     resIsDone() {
-        return this.res.finished || this.res.writableEnded
+        return new RequestResponseChain(this.req, this.res, this.res.finished || this.res.writableEnded);
     }
 
     // res.on("readable", () => {
@@ -165,5 +183,10 @@ export class RequestResponse {
     // res.on('end', () => {
     //     console.log('end--?')
     // });
+}
 
+export class RequestResponseChain<T> extends RequestResponse {
+    constructor(req: IncomingMessage, res: ServerResponse, public result?: T) {
+        super(req, res);
+    }
 }
