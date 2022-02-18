@@ -3,6 +3,8 @@ import {HttpHeaders} from '../codes/HttpHeaders';
 import {Mimes} from '../codes/Mimes';
 import {Intent} from 'simple-boot-core/intent/Intent';
 import {URL} from 'url';
+import {Buffer} from 'buffer';
+import {MultipartData} from './datas/MultipartData';
 // https://masteringjs.io/tutorials/node/http-request
 // https://nodejs.org/ko/docs/guides/anatomy-of-an-http-transaction/
 export class RequestResponse {
@@ -46,11 +48,76 @@ export class RequestResponse {
         return new Intent(this.reqPathSearchParamUrl);
     }
 
-    reqHasAcceptHeader(accept: Mimes | string): boolean {
-        return (this.reqHeaderFirst(HttpHeaders.Accept) ?? '').indexOf(accept) > -1;
+    reqHasContentTypeHeader(mime: Mimes | string): boolean {
+        return (this.reqHeaderFirst(HttpHeaders.ContentType) ?? '').toLowerCase().indexOf(mime.toLocaleLowerCase()) > -1;
     }
 
-    reqBodyJsonData<T>() {
+    reqHasAcceptHeader(mime: Mimes | string): boolean {
+        return (this.reqHeaderFirst(HttpHeaders.Accept) ?? '').toLowerCase().indexOf(mime.toLocaleLowerCase()) > -1;
+    }
+
+    reqBodyData(): Promise<Buffer> {
+        return new Promise<Buffer>((resolve, reject) => {
+            let data: Uint8Array[] = [];
+            this.req.on('data', (chunk) =>  data.push(chunk));
+            this.req.on('error', err => reject(err));
+            this.req.on('end', () => resolve(Buffer.concat(data)));
+        });
+    }
+
+    reqBodyURLSearchParamsData(): Promise<URLSearchParams> {
+        return new Promise<URLSearchParams>((resolve, reject) => {
+            let data = '';
+            this.req.on('data', (chunk) => data += chunk);
+            this.req.on('error', err => reject(err));
+            this.req.on('end', () => resolve(new URLSearchParams(data)));
+        });
+    }
+
+    reqBodyMultipartFormData(): Promise<MultipartData<any>[]> {
+        return new Promise<MultipartData<any>[]>((resolve, reject) => {
+            let data = '';
+            this.req.on('data', (chunk) => data += chunk);
+            this.req.on('error', err => reject(err));
+            this.req.on('end', () => {
+                if (this.reqHasContentTypeHeader(Mimes.MultipartFormData)) {
+                    let contentType = this.reqHeaderFirst(HttpHeaders.ContentType)?.toString();
+                    const boundary = contentType?.split(';')[1]?.split('=')[1];
+                    if (boundary) {
+                        let datas = data.split('--'+boundary.trim()+'--\r\n')[0].split('--'+boundary.trim()+'\r\n').slice(1);
+                        const mDatas = datas.map(it => {
+                            const header = {} as any
+                            let [headerRaw, body] = it.split('\r\n\r\n');
+                            headerRaw.split('\r\n').filter(sit => sit).forEach(sit => {
+                                const [k, v] = sit.split(':');
+                                if (k && v) {
+                                    header[k.trim()] = header[k.trim()] ? header[k.trim()] : [];
+                                    header[k.trim()].push(v.trim());
+                                }
+                            })
+                            return new MultipartData(boundary, header, body);
+                        });
+                        resolve(mDatas);
+                    } else {
+                        reject(new Error('Not MultipartFormData boundary'));
+                    }
+                } else {
+                    reject(new Error('Not MultipartFormData'));
+                }
+            });
+        });
+    }
+
+    reqBodyStringData(): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
+            let data = '';
+            this.req.on('data', (chunk) => data += chunk);
+            this.req.on('error', err => reject(err));
+            this.req.on('end', () => resolve(data));
+        });
+    }
+
+    reqBodyJsonData<T>(): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             let data = '';
             this.req.on('data', (chunk) => data += chunk);
@@ -59,8 +126,8 @@ export class RequestResponse {
         });
     }
 
-    resBodyJsonData() {
-        new Promise((resolve, reject) => {
+    resBodyJsonData<T>(): Promise<T>  {
+        return new Promise<T>((resolve, reject) => {
             let data = '';
             this.res.on('data', chunk => data += chunk);
             this.res.on('error', err => reject(err));
@@ -93,7 +160,7 @@ export class RequestResponse {
         return this.reqHeaderFirst(HttpHeaders.Authorization);
     }
 
-    resStatusCode(code: undefined): number;
+    resStatusCode(code?: undefined): number;
     resStatusCode(code: number): RequestResponseChain<number>;
     resStatusCode(code: number|undefined): number | RequestResponseChain<number> {
         if (code) {
@@ -157,12 +224,12 @@ export class RequestResponse {
         return new RequestResponseChain(this.req, this.res);
     }
 
-    resEnd() {
-        this.res.end();
+    resEnd(chunk?: any) {
+        this.res.end(chunk);
         return new RequestResponseChain(this.req, this.res);
     }
 
-    resWriteHead(statusCode: number, headers?: OutgoingHttpHeaders | OutgoingHttpHeader[]) {
+    resWriteHead(statusCode: number, headers?: OutgoingHttpHeaders | OutgoingHttpHeader[] | { [key: string]: string | string[] }) {
         return new RequestResponseChain(this.req, this.res, this.res.writeHead(statusCode, headers));
     }
 

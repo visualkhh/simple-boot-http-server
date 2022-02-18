@@ -1,9 +1,25 @@
 import 'reflect-metadata';
-import { ReflectMethod } from 'simple-boot-core/types/Types';
+import {ConstructorType, ReflectMethod} from 'simple-boot-core/types/Types';
 import { ReflectUtils } from 'simple-boot-core/utils/reflect/ReflectUtils';
+import {Resolver} from '../resolvers/Resolver';
+import {Mimes} from '../codes/Mimes';
 export type MappingConfig = {
-    resStatus?: number;
-    resHeaders?: {[key: string]: string};
+    description?: {
+        name?: string;
+        detail?: string;
+    };
+
+    req?: {
+        contentType?: string[];
+        accept?: string[];
+    };
+
+    res?: {
+        status?: number;
+        header?: {[key: string]: string};
+        contentType?: Mimes | string;
+    }
+    resolver?: Resolver|ConstructorType<Resolver>;
 }
 export type SaveMappingConfig = {propertyKey: string | symbol; config: MappingConfig}
 const GETSMappingMetadataKey = Symbol('GET_METHODS');

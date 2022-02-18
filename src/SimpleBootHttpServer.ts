@@ -4,20 +4,26 @@ import {ConstructorType} from 'simple-boot-core/types/Types';
 import {IncomingMessage, Server, ServerResponse} from 'http'
 import {RequestResponse} from './models/RequestResponse';
 import {
+    BodyType,
     getCONNECTS,
     getDELETES,
-    getGETS, getHEADS,
+    getGETS,
+    getHEADS,
     getPATCHS,
     getPOSTS,
-    getPUTS, getTRACES,
+    getPUTS,
+    getTRACES,
     SaveMappingConfig
 } from './decorators/MethodMapping';
 import {HttpStatus} from './codes/HttpStatus';
 import {HttpHeaders} from './codes/HttpHeaders';
 import {Mimes} from './codes/Mimes';
 import {Filter} from './filters/Filter';
-import {targetExceptionHandler} from 'simple-boot-core/decorators/exception/ExceptionDecorator';
-import {SiturationTypeContainer, SituationType} from 'simple-boot-core/decorators/inject/Inject';
+import {
+    ExceptionHandlerSituationType,
+    targetExceptionHandler
+} from 'simple-boot-core/decorators/exception/ExceptionDecorator';
+import {SituationType, SiturationTypeContainer} from 'simple-boot-core/decorators/inject/Inject';
 
 export class SimpleBootHttpServer extends SimpleApplication {
     constructor(public rootRouter: ConstructorType<Object>, public option: HttpServerOption = new HttpServerOption()) {
@@ -61,7 +67,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
                 if (!rr.res.finished || !rr.res.writableEnded) {
                     const data = await this.routing(rr.reqIntent);
                     const moduleInstance = data.getModuleInstance();
-                    const methods: SaveMappingConfig[] = [];
+                    let methods: SaveMappingConfig[] = [];
                     if (moduleInstance) {
                         if (rr.reqMethod() === 'GET') {
                             methods.push(...getGETS(moduleInstance) ?? []);
@@ -80,21 +86,45 @@ export class SimpleBootHttpServer extends SimpleApplication {
                         } else if (rr.reqMethod() === 'CONNECT') {
                             methods.push(...getCONNECTS(moduleInstance) ?? []);
                         }
-
-                        methods.forEach(it => {
-                            let data = this.simstanceManager.executeBindParameterSim({
+                        // console.dir(methods, {depth: 50});
+                        // methods.forEach(it => {
+                        //     console.log('method-->', it, it.config);
+                        // })
+                        methods = methods
+                            .filter(it => it.config?.req?.contentType ? (it.config?.req?.contentType?.find(sit => rr.reqHasContentTypeHeader(sit)) ? true : false) : true)
+                            .filter(it => it.config?.req?.accept ? (it.config?.req?.accept?.find(sit => rr.reqHasAcceptHeader(sit)) ? true : false) : true);
+                        if (methods[0]) {
+                            const it = methods[0];
+                            console.log('method run-->', it);
+                            let data = await this.simstanceManager.executeBindParameterSimPromise({
                                 target: moduleInstance,
                                 targetKey: it.propertyKey
                             }, otherStorage);
-                            const status = it.config.resStatus ?? HttpStatus.Ok;
-                            const headers = it.config.resHeaders;
-                            rr.res.writeHead(status, headers);
-                            const contentType = Object.entries(headers ?? {}).find(([key, value]) => key.toLowerCase() === HttpHeaders.ContentType.toLowerCase());
-                            if ((contentType?.[1] ?? '').toLowerCase().indexOf(Mimes.ApplicationJson.toLowerCase()) >= 0) {
+
+                            console.log('method resolver run-->', it.config?.resolver, data);
+
+                            if (it.config?.resolver) {
+                                const execute = typeof it.config.resolver === 'function' ? this.simstanceManager.getOrNewSim(it.config.resolver) : it.config.resolver;
+                                data = await execute?.resolve?.(data, rr);
+                            }
+
+                            const status = it.config?.res?.status ?? HttpStatus.Ok;
+                            const headers = it.config?.res?.header ?? {};
+                            if (it.config?.res?.contentType) {
+                                headers[HttpHeaders.ContentType] = it.config?.res?.contentType;
+                            }
+
+                            if (it.config?.res?.contentType?.toLowerCase() === Mimes.ApplicationJson) {
+                                data = JSON.stringify(data);
+                            } else if (typeof data === 'object'){
                                 data = JSON.stringify(data);
                             }
-                            rr.res.end(data);
-                        })
+
+                            rr.resSetHeaders(headers)
+                            rr.resSetStatusCode(status);
+                            rr.resEnd(data);
+                        }
+
                     }
 
                     if (this.option.noSuchRouteEndPointMappingThrow && methods.length <= 0) {
@@ -111,7 +141,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
             } catch (e) {
                 if (e && typeof e === 'object') {
                     otherStorage.set(e.constructor as ConstructorType<any>, e);
-                    otherStorage.set(SiturationTypeContainer, new SiturationTypeContainer(SituationType.ExceptionHandlerErrorObject, e));
+                    otherStorage.set(SiturationTypeContainer, new SiturationTypeContainer(ExceptionHandlerSituationType.ERROR_OBJECT, e));
                 }
                 const execute = typeof this.option.globalAdvice === 'function' ? this.simstanceManager.getOrNewSim(this.option.globalAdvice) : this.option.globalAdvice;
                 let target = targetExceptionHandler(execute, e);
