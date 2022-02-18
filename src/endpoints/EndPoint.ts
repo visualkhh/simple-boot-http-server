@@ -1,5 +1,6 @@
-import {IncomingMessage, ServerResponse} from 'http';
+import {RequestResponse} from '../models/RequestResponse';
+import {SimpleBootHttpServer} from '../SimpleBootHttpServer';
 
 export interface EndPoint {
-    endPoint(req: IncomingMessage, res: ServerResponse): void;
+    endPoint(rr: RequestResponse, app: SimpleBootHttpServer): void;
 }

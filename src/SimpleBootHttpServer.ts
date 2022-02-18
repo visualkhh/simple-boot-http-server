@@ -4,7 +4,6 @@ import {ConstructorType} from 'simple-boot-core/types/Types';
 import {IncomingMessage, Server, ServerResponse} from 'http'
 import {RequestResponse} from './models/RequestResponse';
 import {
-    BodyType,
     getCONNECTS,
     getDELETES,
     getGETS,
@@ -12,7 +11,7 @@ import {
     getPATCHS,
     getPOSTS,
     getPUTS,
-    getTRACES,
+    getTRACES, getUrlMappings,
     SaveMappingConfig
 } from './decorators/MethodMapping';
 import {HttpStatus} from './codes/HttpStatus';
@@ -24,6 +23,7 @@ import {
     targetExceptionHandler
 } from 'simple-boot-core/decorators/exception/ExceptionDecorator';
 import {SituationType, SiturationTypeContainer} from 'simple-boot-core/decorators/inject/Inject';
+import {EndPoint} from './endpoints/EndPoint';
 
 export class SimpleBootHttpServer extends SimpleApplication {
     constructor(public rootRouter: ConstructorType<Object>, public option: HttpServerOption = new HttpServerOption()) {
@@ -37,13 +37,15 @@ export class SimpleBootHttpServer extends SimpleApplication {
             const rr = new RequestResponse(req, res);
             const otherStorage = new Map<ConstructorType<any>, any>();
             otherStorage.set(RequestResponse, rr);
+            otherStorage.set(IncomingMessage, req);
+            otherStorage.set(ServerResponse, res);
             try {
 
                 if (this.option.requestEndPoints) {
                     for (const it of this.option.requestEndPoints) {
                         try {
-                            const execute = typeof it === 'function' ? this.simstanceManager.getOrNewSim(it) : it;
-                            execute?.endPoint(req, res);
+                            const execute = (typeof it === 'function' ? this.simstanceManager.getOrNewSim<EndPoint>(it) : it) as EndPoint;
+                            execute?.endPoint(rr, this);
                         } catch (e) {
                         }
                     }
@@ -52,10 +54,10 @@ export class SimpleBootHttpServer extends SimpleApplication {
                 const filter: { filter: Filter, sw: boolean }[] = [];
                 for (let i = 0; this.option.filters && i < this.option.filters.length; i++) {
                     const it = this.option.filters[i];
-                    const execute = typeof it === 'function' ? this.simstanceManager.getOrNewSim(it) : it;
+                    const execute = (typeof it === 'function' ? this.simstanceManager.getOrNewSim(it) : it) as Filter;
                     let sw = true;
                     if (execute?.before) {
-                        sw = await execute.before(req, res, this);
+                        sw = await execute.before(rr, this);
                         filter.push({filter: execute, sw});
                     }
                     if (!sw) {
@@ -69,27 +71,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
                     const moduleInstance = data.getModuleInstance();
                     let methods: SaveMappingConfig[] = [];
                     if (moduleInstance) {
-                        if (rr.reqMethod() === 'GET') {
-                            methods.push(...getGETS(moduleInstance) ?? []);
-                        } else if (rr.reqMethod() === 'POST') {
-                            methods.push(...getPOSTS(moduleInstance) ?? []);
-                        } else if (rr.reqMethod() === 'DELETE') {
-                            methods.push(...getDELETES(moduleInstance) ?? []);
-                        } else if (rr.reqMethod() === 'PUT') {
-                            methods.push(...getPUTS(moduleInstance) ?? []);
-                        } else if (rr.reqMethod() === 'PATCH') {
-                            methods.push(...getPATCHS(moduleInstance) ?? []);
-                        } else if (rr.reqMethod() === 'HEAD') {
-                            methods.push(...getHEADS(moduleInstance) ?? []);
-                        } else if (rr.reqMethod() === 'TRACE') {
-                            methods.push(...getTRACES(moduleInstance) ?? []);
-                        } else if (rr.reqMethod() === 'CONNECT') {
-                            methods.push(...getCONNECTS(moduleInstance) ?? []);
-                        }
-                        // console.dir(methods, {depth: 50});
-                        // methods.forEach(it => {
-                        //     console.log('method-->', it, it.config);
-                        // })
+                        methods.push(... (getUrlMappings(moduleInstance).filter(it => rr.reqMethod()?.toUpperCase() === it.config.method.toUpperCase()) ?? []));
                         methods = methods
                             .filter(it => it.config?.req?.contentType ? (it.config?.req?.contentType?.find(sit => rr.reqHasContentTypeHeader(sit)) ? true : false) : true)
                             .filter(it => it.config?.req?.accept ? (it.config?.req?.accept?.find(sit => rr.reqHasAcceptHeader(sit)) ? true : false) : true);
@@ -114,7 +96,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
                                 headers[HttpHeaders.ContentType] = it.config?.res?.contentType;
                             }
 
-                            if (it.config?.res?.contentType?.toLowerCase() === Mimes.ApplicationJson) {
+                            if (it.config?.res?.contentType?.toLowerCase() === Mimes.ApplicationJson.toLowerCase()) {
                                 data = JSON.stringify(data);
                             } else if (typeof data === 'object'){
                                 data = JSON.stringify(data);
@@ -134,7 +116,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
 
                 // after
                 for (const it of filter.reverse()) {
-                    if (it.filter?.after && !await it.filter.after(req, res, this, it.sw)) {
+                    if (it.filter?.after && !await it.filter.after(rr, this, it.sw)) {
                         break;
                     }
                 }
@@ -152,23 +134,25 @@ export class SimpleBootHttpServer extends SimpleApplication {
                     }, otherStorage);
                 }
             }
+
             res.on('close', () => {
                 if (this.option.closeEndPoints) {
                     for (const it of this.option.closeEndPoints) {
                         try {
-                            const execute = typeof it === 'function' ? this.simstanceManager.getOrNewSim(it) : it;
-                            execute?.endPoint(req, res);
+                            const execute = (typeof it === 'function' ? this.simstanceManager.getOrNewSim(it) : it) as EndPoint;
+                            execute?.endPoint(rr, this);
                         } catch (e) {
                         }
                     }
                 }
             });
+
             res.on('error', () => {
                 if (this.option.errorEndPoints) {
                     for (const it of this.option.errorEndPoints) {
                         try {
-                            const execute = typeof it === 'function' ? this.simstanceManager.getOrNewSim(it) : it;
-                            execute?.endPoint(req, res);
+                            const execute = (typeof it === 'function' ? this.simstanceManager.getOrNewSim(it) : it) as EndPoint;
+                            execute?.endPoint(rr, this);
                         } catch (e) {
                         }
                     }

@@ -5,13 +5,15 @@ import path from 'path';
 import mime from 'mime-types';
 import {HttpHeaders} from '../codes/HttpHeaders';
 import {HttpStatus} from '../codes/HttpStatus';
+import {SimpleBootHttpServer} from '../SimpleBootHttpServer';
+import {RequestResponse} from '../models/RequestResponse';
 
 export class ResourceFilter implements Filter {
     constructor(private resourceDistPath: string, private resourceRegex: string[] = []) {
     }
 
-    async before(req: IncomingMessage, res: ServerResponse) {
-        const url = (req.url ?? '').replace(/\.\./g, '');
+    async before(rr: RequestResponse, app: SimpleBootHttpServer) {
+        const url = (rr.req.url ?? '').replace(/\.\./g, '');
         let sw = true;
         const regExps = this.resourceRegex.filter(it => RegExp(it).test(url))
         for (const it of regExps) {
@@ -20,9 +22,9 @@ export class ResourceFilter implements Filter {
                 const header = {} as any;
                 // header[HttpHeaders.ContentType] = mime.lookup(resourcePath);
                 // res.writeHead(HttpStatus.Ok, header);
-                res.statusCode = HttpStatus.Ok;
-                res.setHeader(HttpHeaders.ContentType, mime.lookup(resourcePath).toString());
-                res.end(fs.readFileSync(resourcePath));
+                rr.res.statusCode = HttpStatus.Ok;
+                rr.res.setHeader(HttpHeaders.ContentType, mime.lookup(resourcePath).toString());
+                rr.res.end(fs.readFileSync(resourcePath));
                 sw = false;
                 break;
             }
@@ -30,7 +32,7 @@ export class ResourceFilter implements Filter {
         return sw;
     }
 
-    async after(req: IncomingMessage, res: ServerResponse) {
+     async after(rr: RequestResponse, app: SimpleBootHttpServer) {
         return true;
     }
 
