@@ -84,6 +84,6 @@
     "mime-types": "^2.1.34",
     "nodemon": "^2.0.15",
     "reflect-metadata": "^0.1.13",
-    "simple-boot-core": "file:../dist-simple-boot-core"
+    "simple-boot-core": "file:libs/dist-simple-boot-core"
   }
 }

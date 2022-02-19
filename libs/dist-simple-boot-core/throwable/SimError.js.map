@@ -1,1 +1,0 @@
-{"version":3,"file":"SimError.js","sourceRoot":"","sources":["../../simple-boot-core/src/throwable/SimError.ts"],"names":[],"mappings":";;;AAAA;IAKI,kBAAY,OAAgB,EAAE,IAAa,EAAE,KAAc;QACvD,IAAI,CAAC,OAAO,GAAG,OAAO,CAAC;QACvB,IAAI,CAAC,IAAI,GAAG,IAAI,CAAC;QACjB,IAAI,CAAC,KAAK,GAAG,KAAK,CAAC;IACvB,CAAC;IACL,eAAC;AAAD,CAAC,AAVD,IAUC;AAVY,4BAAQ"}
