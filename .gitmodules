@@ -1,0 +1,4 @@
+[submodule "libs/simple-boot-core"]
+	path = libs/simple-boot-core
+	url = https://github.com/visualkhh/simple-boot-core.git
+	branch = master

@@ -3,17 +3,7 @@ import {HttpServerOption} from './option/HttpServerOption';
 import {ConstructorType} from 'simple-boot-core/types/Types';
 import {IncomingMessage, Server, ServerResponse} from 'http'
 import {RequestResponse} from './models/RequestResponse';
-import {
-    getCONNECTS,
-    getDELETES,
-    getGETS,
-    getHEADS,
-    getPATCHS,
-    getPOSTS,
-    getPUTS,
-    getTRACES, getUrlMappings,
-    SaveMappingConfig
-} from './decorators/MethodMapping';
+import {getUrlMappings, SaveMappingConfig, UrlMappingSituationType} from './decorators/MethodMapping';
 import {HttpStatus} from './codes/HttpStatus';
 import {HttpHeaders} from './codes/HttpHeaders';
 import {Mimes} from './codes/Mimes';
@@ -22,8 +12,12 @@ import {
     ExceptionHandlerSituationType,
     targetExceptionHandler
 } from 'simple-boot-core/decorators/exception/ExceptionDecorator';
-import {SituationType, SiturationTypeContainer} from 'simple-boot-core/decorators/inject/Inject';
+import {getInject, SituationType, SituationTypeContainer, SituationTypeContainers} from 'simple-boot-core/decorators/inject/Inject';
 import {EndPoint} from './endpoints/EndPoint';
+import {ReflectUtils} from 'simple-boot-core/utils/reflect/ReflectUtils';
+import {ReqFormUrlBody} from './models/datas/body/ReqFormUrlBody';
+import {ReqJsonBody} from './models/datas/body/ReqJsonBody';
+import {ReqHeader} from './models/datas/ReqHeader';
 
 export class SimpleBootHttpServer extends SimpleApplication {
     constructor(public rootRouter: ConstructorType<Object>, public option: HttpServerOption = new HttpServerOption()) {
@@ -40,7 +34,6 @@ export class SimpleBootHttpServer extends SimpleApplication {
             otherStorage.set(IncomingMessage, req);
             otherStorage.set(ServerResponse, res);
             try {
-
                 if (this.option.requestEndPoints) {
                     for (const it of this.option.requestEndPoints) {
                         try {
@@ -71,20 +64,55 @@ export class SimpleBootHttpServer extends SimpleApplication {
                     const moduleInstance = data.getModuleInstance();
                     let methods: SaveMappingConfig[] = [];
                     if (moduleInstance) {
-                        methods.push(... (getUrlMappings(moduleInstance).filter(it => rr.reqMethod()?.toUpperCase() === it.config.method.toUpperCase()) ?? []));
+                        methods.push(...(getUrlMappings(moduleInstance).filter(it => rr.reqMethod()?.toUpperCase() === it.config.method.toUpperCase()) ?? []));
+                        methods.sort((a, b) => {
+                            return ((b.config?.req?.contentType?.length ?? 0) + (b.config?.req?.accept?.length ?? 0)) - ((a.config?.req?.contentType?.length ?? 0) + (a.config?.req?.accept?.length ?? 0));
+                        })
                         methods = methods
-                            .filter(it => it.config?.req?.contentType ? (it.config?.req?.contentType?.find(sit => rr.reqHasContentTypeHeader(sit)) ? true : false) : true)
-                            .filter(it => it.config?.req?.accept ? (it.config?.req?.accept?.find(sit => rr.reqHasAcceptHeader(sit)) ? true : false) : true);
+                            .filter(it => it.config?.req?.contentType ? (!!it.config?.req?.contentType?.find(sit => rr.reqHasContentTypeHeader(sit))) : true)
+                            .filter(it => it.config?.req?.accept ? (!!it.config?.req?.accept?.find(sit => rr.reqHasAcceptHeader(sit))) : true);
+
+                        console.dir(methods, {depth: 5});
+
                         if (methods[0]) {
                             const it = methods[0];
-                            console.log('method run-->', it);
+                            const paramTypes = ReflectUtils.getParameterTypes(moduleInstance, it.propertyKey)
+                            const injects = getInject(moduleInstance, it.propertyKey);
+                            if (injects) {
+                                const isJson = injects.find(it => it.config?.situationType === UrlMappingSituationType.REQ_JSON_BODY);
+                                const isFormUrl = injects.find(it => it.config?.situationType === UrlMappingSituationType.REQ_FORM_URL_BODY);
+                                const ss = new SituationTypeContainers();
+                                if (isJson) {
+                                    const data = await rr.reqBodyJsonData()
+                                    ss.push(new SituationTypeContainer({situationType: UrlMappingSituationType.REQ_JSON_BODY, data}));
+                                }
+                                if (isFormUrl) {
+                                    const data = await rr.reqBodyFormUrlData()
+                                    ss.push(new SituationTypeContainer({situationType: UrlMappingSituationType.REQ_FORM_URL_BODY, data}));
+                                }
+
+                                if (ss.length) {
+                                    otherStorage.set(SituationTypeContainers, ss);
+                                }
+                            }
+                            console.log('method run-->', it, paramTypes);
+                            for (const paramType of paramTypes) {
+                                if (paramType === ReqFormUrlBody) {
+                                    otherStorage.set(ReqFormUrlBody, await rr.reqBodyReqFormUrlBody())
+                                } else if (paramType === ReqJsonBody) {
+                                    otherStorage.set(ReqJsonBody, await rr.reqBodyReqJsonBody())
+                                } else if (paramType === URLSearchParams) {
+                                    otherStorage.set(URLSearchParams, rr.reqUrlSearchParamsType)
+                                } else if (paramType === ReqHeader) {
+                                    otherStorage.set(ReqHeader, rr.reqHeaderObj)
+                                }
+                            }
                             let data = await this.simstanceManager.executeBindParameterSimPromise({
                                 target: moduleInstance,
                                 targetKey: it.propertyKey
                             }, otherStorage);
 
-                            console.log('method resolver run-->', it.config?.resolver, data);
-
+                            // console.log('method resolver run-->', it.config?.resolver, data);
                             if (it.config?.resolver) {
                                 const execute = typeof it.config.resolver === 'function' ? this.simstanceManager.getOrNewSim(it.config.resolver) : it.config.resolver;
                                 data = await execute?.resolve?.(data, rr);
@@ -96,9 +124,10 @@ export class SimpleBootHttpServer extends SimpleApplication {
                                 headers[HttpHeaders.ContentType] = it.config?.res?.contentType;
                             }
 
-                            if (it.config?.res?.contentType?.toLowerCase() === Mimes.ApplicationJson.toLowerCase()) {
+                            // console.log('--?', data, typeof data, typeof data === 'object');
+                            if ((it.config?.res?.contentType?.toLowerCase().indexOf(Mimes.ApplicationJson.toLowerCase()) ?? -1) > -1) {
                                 data = JSON.stringify(data);
-                            } else if (typeof data === 'object'){
+                            } else if (data && typeof data === 'object') {
                                 data = JSON.stringify(data);
                             }
 
@@ -106,7 +135,6 @@ export class SimpleBootHttpServer extends SimpleApplication {
                             rr.resSetStatusCode(status);
                             rr.resEnd(data);
                         }
-
                     }
 
                     if (this.option.noSuchRouteEndPointMappingThrow && methods.length <= 0) {
@@ -121,17 +149,30 @@ export class SimpleBootHttpServer extends SimpleApplication {
                     }
                 }
             } catch (e) {
+                const execute = typeof this.option.globalAdvice === 'function' ? this.simstanceManager.getOrNewSim(this.option.globalAdvice) : this.option.globalAdvice;
+                if (!execute) {
+                    rr.resWriteHead(HttpStatus.InternalServerError)
+                    rr.resEnd();
+                    return;
+                }
                 if (e && typeof e === 'object') {
                     otherStorage.set(e.constructor as ConstructorType<any>, e);
-                    otherStorage.set(SiturationTypeContainer, new SiturationTypeContainer(ExceptionHandlerSituationType.ERROR_OBJECT, e));
+                    otherStorage.set(SituationTypeContainer, new SituationTypeContainer({situationType: ExceptionHandlerSituationType.ERROR_OBJECT, data: e}));
                 }
-                const execute = typeof this.option.globalAdvice === 'function' ? this.simstanceManager.getOrNewSim(this.option.globalAdvice) : this.option.globalAdvice;
-                let target = targetExceptionHandler(execute, e);
+                const target = targetExceptionHandler(execute, e);
                 if (target) {
-                    let data = this.simstanceManager.executeBindParameterSim({
+                    await this.simstanceManager.executeBindParameterSimPromise({
                         target: execute,
                         targetKey: target.propertyKey
                     }, otherStorage);
+                    // await this.simstanceManager.executeBindParameterSim({
+                    //     target: execute,
+                    //     targetKey: target.propertyKey
+                    // }, otherStorage);
+                }
+
+                if (!rr.resIsDone()) {
+                    rr.resEnd();
                 }
             }
 

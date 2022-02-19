@@ -35,6 +35,7 @@
   },
   "exclude": [
     "examples",
+    "libs",
     "rollup.config.js",
     "test",
     "cli",

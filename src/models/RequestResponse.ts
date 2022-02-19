@@ -5,6 +5,9 @@ import {Intent} from 'simple-boot-core/intent/Intent';
 import {URL} from 'url';
 import {Buffer} from 'buffer';
 import {MultipartData} from './datas/MultipartData';
+import {ReqFormUrlBody} from './datas/body/ReqFormUrlBody';
+import {ReqJsonBody} from './datas/body/ReqJsonBody';
+import {ReqHeader} from './datas/ReqHeader';
 // https://masteringjs.io/tutorials/node/http-request
 // https://nodejs.org/ko/docs/guides/anatomy-of-an-http-transaction/
 export class RequestResponse {
@@ -34,6 +37,10 @@ export class RequestResponse {
         return Array.from(this.reqUrlObj.searchParams as any);
     }
 
+    get reqUrlSearchParamsType(): URLSearchParams {
+        return this.reqUrlObj.searchParams;
+    }
+
     get reqUrlSearchParamsObj(): { [p: string]: { [p: string]: any } } {
         const entries = this.reqUrlObj.searchParams;
         return Object.fromEntries(entries as any)
@@ -41,7 +48,7 @@ export class RequestResponse {
 
     get reqPathSearchParamUrl(): string {
         const reqUrlObj1 = this.reqUrlObj;
-        return reqUrlObj1.pathname + (reqUrlObj1.searchParams.toString() ? '&' + reqUrlObj1.searchParams.toString() : '')
+        return reqUrlObj1.pathname + (reqUrlObj1.searchParams.toString() ? '?' + reqUrlObj1.searchParams.toString() : '')
     }
 
     get reqIntent() {
@@ -58,19 +65,10 @@ export class RequestResponse {
 
     reqBodyData(): Promise<Buffer> {
         return new Promise<Buffer>((resolve, reject) => {
-            let data: Uint8Array[] = [];
-            this.req.on('data', (chunk) =>  data.push(chunk));
+            const data: Uint8Array[] = [];
+            this.req.on('data', (chunk) => data.push(chunk));
             this.req.on('error', err => reject(err));
             this.req.on('end', () => resolve(Buffer.concat(data)));
-        });
-    }
-
-    reqBodyURLSearchParamsData(): Promise<URLSearchParams> {
-        return new Promise<URLSearchParams>((resolve, reject) => {
-            let data = '';
-            this.req.on('data', (chunk) => data += chunk);
-            this.req.on('error', err => reject(err));
-            this.req.on('end', () => resolve(new URLSearchParams(data)));
         });
     }
 
@@ -81,13 +79,13 @@ export class RequestResponse {
             this.req.on('error', err => reject(err));
             this.req.on('end', () => {
                 if (this.reqHasContentTypeHeader(Mimes.MultipartFormData)) {
-                    let contentType = this.reqHeaderFirst(HttpHeaders.ContentType)?.toString();
+                    const contentType = this.reqHeaderFirst(HttpHeaders.ContentType)?.toString();
                     const boundary = contentType?.split(';')[1]?.split('=')[1];
                     if (boundary) {
-                        let datas = data.split('--'+boundary.trim()+'--\r\n')[0].split('--'+boundary.trim()+'\r\n').slice(1);
+                        const datas = data.split('--' + boundary.trim() + '--\r\n')[0].split('--' + boundary.trim() + '\r\n').slice(1);
                         const mDatas = datas.map(it => {
                             const header = {} as any
-                            let [headerRaw, body] = it.split('\r\n\r\n');
+                            const [headerRaw, body] = it.split('\r\n\r\n');
                             headerRaw.split('\r\n').filter(sit => sit).forEach(sit => {
                                 const [k, v] = sit.split(':');
                                 if (k && v) {
@@ -126,7 +124,63 @@ export class RequestResponse {
         });
     }
 
-    resBodyJsonData<T>(): Promise<T>  {
+    reqBodyFormUrlData<T>(): Promise<T> {
+        return new Promise<T>((resolve, reject) => {
+            let data = '';
+            this.req.on('data', (chunk) => data += chunk);
+            this.req.on('error', err => reject(err));
+            this.req.on('end', () => {
+                const formData = {} as any;
+                Array.from(new URLSearchParams(data).entries()).forEach(([k, v]) => {
+                    const target = formData[k];
+                    if (Array.isArray(target)) {
+                        target.push(v);
+                    } else if (typeof target === 'string') {
+                        formData[k] = [target, v]
+                    } else {
+                        formData[k] = v;
+                    }
+                });
+                resolve(formData);
+            });
+        });
+    }
+
+    reqBodyReqFormUrlBody(): Promise<ReqFormUrlBody> {
+        return new Promise<ReqFormUrlBody>((resolve, reject) => {
+            let data = '';
+            this.req.on('data', (chunk) => data += chunk);
+            this.req.on('error', err => reject(err));
+            this.req.on('end', () => {
+                const formData = new ReqFormUrlBody();
+                Array.from(new URLSearchParams(data).entries()).forEach(([k, v]) => {
+                    const target = formData[k];
+                    if (Array.isArray(target)) {
+                        target.push(v);
+                    } else if (typeof target === 'string') {
+                        formData[k] = [target, v]
+                    } else {
+                        formData[k] = v;
+                    }
+                });
+                resolve(formData);
+            });
+        });
+    }
+
+    reqBodyReqJsonBody<T>(): Promise<T> {
+        return new Promise<T>((resolve, reject) => {
+            let data = '';
+            this.req.on('data', (chunk) => data += chunk);
+            this.req.on('error', err => reject(err));
+            this.req.on('end', () => {
+                const parse = Object.assign(new ReqJsonBody(), JSON.parse(data));
+                resolve(parse)
+            });
+        });
+    }
+
+    resBodyJsonData<T>(): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             let data = '';
             this.res.on('data', chunk => data += chunk);
@@ -141,6 +195,14 @@ export class RequestResponse {
 
     reqHeader(key: HttpHeaders | string, defaultValue?: string) {
         return this.req.headers[key.toLowerCase()] ?? defaultValue;
+    }
+
+    get reqHeaderObj(): ReqHeader {
+        const h = new ReqHeader();
+        Object.entries(this.req.headers).forEach(([k, v]) => {
+            h[k] = v;
+        });
+        return h;
     }
 
     reqHeaderFirst(key: HttpHeaders | string, defaultValue?: string) {
@@ -234,7 +296,8 @@ export class RequestResponse {
     }
 
     resIsDone() {
-        return new RequestResponseChain(this.req, this.res, this.res.finished || this.res.writableEnded);
+        return this.res.finished || this.res.writableEnded;
+        // return new RequestResponseChain(this.req, this.res, this.res.finished || this.res.writableEnded);
     }
 
     // res.on("readable", () => {

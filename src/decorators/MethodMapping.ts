@@ -5,6 +5,10 @@ import {Resolver} from '../resolvers/Resolver';
 import {Mimes} from '../codes/Mimes';
 import {HttpMethod} from '../codes/HttpMethod';
 
+export enum UrlMappingSituationType {
+    REQ_JSON_BODY = 'SIMPLE_BOOT_HTTP_SERVER://URLMAPPING/REQ_JSON_BODY',
+    REQ_FORM_URL_BODY = 'SIMPLE_BOOT_HTTP_SERVER://URLMAPPING/REQ_FORM_URL_BODY',
+}
 export type MappingConfig = {
     method: HttpMethod | string,
     description?: {
@@ -48,7 +52,7 @@ export const getUrlMappings = (target: any): SaveMappingConfig[] => {
     return ReflectUtils.getMetadata(MappingMetadataKey, target);
 }
 
-export const GET = (inputConfig: Omit<MappingConfig,'method'> = {}): ReflectMethod => {
+export const GET = (inputConfig: Omit<MappingConfig, 'method'> = {}): ReflectMethod => {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
         const config = inputConfig as MappingConfig;
         config.method = HttpMethod.GET;
@@ -66,7 +70,7 @@ export const getGETS = (target: any): SaveMappingConfig[] => {
     return getUrlMappings(target)?.filter(it => it.config?.method.toUpperCase() === HttpMethod.GET);
 }
 
-export const POST = (inputConfig: Omit<MappingConfig,'method'> = {}): ReflectMethod => {
+export const POST = (inputConfig: Omit<MappingConfig, 'method'> = {}): ReflectMethod => {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
         const config = inputConfig as MappingConfig;
         config.method = HttpMethod.POST;
@@ -84,7 +88,7 @@ export const getPOSTS = (target: any): SaveMappingConfig[] => {
     return getUrlMappings(target)?.filter(it => it.config?.method.toUpperCase() === HttpMethod.POST);
 }
 
-export const DELETE = (inputConfig: Omit<MappingConfig,'method'> = {}): ReflectMethod => {
+export const DELETE = (inputConfig: Omit<MappingConfig, 'method'> = {}): ReflectMethod => {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
         const config = inputConfig as MappingConfig;
         config.method = HttpMethod.DELETE;
@@ -102,7 +106,7 @@ export const getDELETES = (target: any): SaveMappingConfig[] => {
     return getUrlMappings(target)?.filter(it => it.config?.method.toUpperCase() === HttpMethod.DELETE);
 }
 
-export const PUT = (inputConfig: Omit<MappingConfig,'method'> = {}): ReflectMethod => {
+export const PUT = (inputConfig: Omit<MappingConfig, 'method'> = {}): ReflectMethod => {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
         const config = inputConfig as MappingConfig;
         config.method = HttpMethod.PUT;
@@ -120,7 +124,7 @@ export const getPUTS = (target: any): SaveMappingConfig[] => {
     return getUrlMappings(target)?.filter(it => it.config?.method.toUpperCase() === HttpMethod.PUT);
 }
 
-export const PATCH = (inputConfig: Omit<MappingConfig,'method'> = {}): ReflectMethod => {
+export const PATCH = (inputConfig: Omit<MappingConfig, 'method'> = {}): ReflectMethod => {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
         const config = inputConfig as MappingConfig;
         config.method = HttpMethod.PATCH;
@@ -138,7 +142,7 @@ export const getPATCHS = (target: any): SaveMappingConfig[] => {
     return getUrlMappings(target)?.filter(it => it.config?.method.toUpperCase() === HttpMethod.GET);
 }
 
-export const OPTIONS = (inputConfig: Omit<MappingConfig,'method'> = {}): ReflectMethod => {
+export const OPTIONS = (inputConfig: Omit<MappingConfig, 'method'> = {}): ReflectMethod => {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
         const config = inputConfig as MappingConfig;
         config.method = HttpMethod.OPTIONS;
@@ -156,7 +160,7 @@ export const getOPTIONSS = (target: any): SaveMappingConfig[] => {
     return getUrlMappings(target)?.filter(it => it.config?.method.toUpperCase() === HttpMethod.OPTIONS);
 }
 
-export const HEAD = (inputConfig: Omit<MappingConfig,'method'> = {}): ReflectMethod => {
+export const HEAD = (inputConfig: Omit<MappingConfig, 'method'> = {}): ReflectMethod => {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
         const config = inputConfig as MappingConfig;
         config.method = HttpMethod.HEAD;
@@ -174,7 +178,7 @@ export const getHEADS = (target: any): SaveMappingConfig[] => {
     return getUrlMappings(target)?.filter(it => it.config?.method.toUpperCase() === HttpMethod.GET);
 }
 
-export const TRACE = (inputConfig: Omit<MappingConfig,'method'> = {}): ReflectMethod => {
+export const TRACE = (inputConfig: Omit<MappingConfig, 'method'> = {}): ReflectMethod => {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
         const config = inputConfig as MappingConfig;
         config.method = HttpMethod.TRACE;
@@ -192,7 +196,7 @@ export const getTRACES = (target: any): SaveMappingConfig[] => {
     return getUrlMappings(target)?.filter(it => it.config?.method.toUpperCase() === HttpMethod.TRACE);
 }
 
-export const CONNECT = (inputConfig: Omit<MappingConfig,'method'> = {}): ReflectMethod => {
+export const CONNECT = (inputConfig: Omit<MappingConfig, 'method'> = {}): ReflectMethod => {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
         const config = inputConfig as MappingConfig;
         config.method = HttpMethod.CONNECT;
