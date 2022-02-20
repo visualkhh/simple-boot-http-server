@@ -1,4 +1,4 @@
-import { Router, Sim } from "simple-boot-core/decorators/SimDecorator";
+import { Router, Sim } from 'simple-boot-core/decorators/SimDecorator';
 import {Hello} from './Hello';
 
 @Sim()
@@ -6,6 +6,7 @@ import {Hello} from './Hello';
     path: '',
     route: {
         '': '/',
+        '/:id/:good': Hello,
         '/': Hello
     }
 })

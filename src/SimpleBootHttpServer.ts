@@ -12,12 +12,13 @@ import {
     ExceptionHandlerSituationType,
     targetExceptionHandler
 } from 'simple-boot-core/decorators/exception/ExceptionDecorator';
-import {getInject, SituationType, SituationTypeContainer, SituationTypeContainers} from 'simple-boot-core/decorators/inject/Inject';
+import {getInject, SituationTypeContainer, SituationTypeContainers} from 'simple-boot-core/decorators/inject/Inject';
 import {EndPoint} from './endpoints/EndPoint';
 import {ReflectUtils} from 'simple-boot-core/utils/reflect/ReflectUtils';
 import {ReqFormUrlBody} from './models/datas/body/ReqFormUrlBody';
 import {ReqJsonBody} from './models/datas/body/ReqJsonBody';
 import {ReqHeader} from './models/datas/ReqHeader';
+import {RouterModule} from 'simple-boot-core/route/RouterModule';
 
 export class SimpleBootHttpServer extends SimpleApplication {
     constructor(public rootRouter: ConstructorType<Object>, public option: HttpServerOption = new HttpServerOption()) {
@@ -60,8 +61,9 @@ export class SimpleBootHttpServer extends SimpleApplication {
 
                 // body.. something..
                 if (!rr.res.finished || !rr.res.writableEnded) {
-                    const data = await this.routing(rr.reqIntent);
-                    const moduleInstance = data.getModuleInstance();
+                    const routerModule = await this.routing(rr.reqIntent);
+                    otherStorage.set(RouterModule, routerModule);
+                    const moduleInstance = routerModule?.getModuleInstance?.();
                     let methods: SaveMappingConfig[] = [];
                     if (moduleInstance) {
                         methods.push(...(getUrlMappings(moduleInstance).filter(it => rr.reqMethod()?.toUpperCase() === it.config.method.toUpperCase()) ?? []));
@@ -95,7 +97,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
                                     otherStorage.set(SituationTypeContainers, ss);
                                 }
                             }
-                            console.log('method run-->', it, paramTypes);
+                            // console.log('method run-->', it, paramTypes);
                             for (const paramType of paramTypes) {
                                 if (paramType === ReqFormUrlBody) {
                                     otherStorage.set(ReqFormUrlBody, await rr.reqBodyReqFormUrlBody())
@@ -107,12 +109,14 @@ export class SimpleBootHttpServer extends SimpleApplication {
                                     otherStorage.set(ReqHeader, rr.reqHeaderObj)
                                 }
                             }
+
+                            // execute !!!
                             let data = await this.simstanceManager.executeBindParameterSimPromise({
                                 target: moduleInstance,
                                 targetKey: it.propertyKey
                             }, otherStorage);
 
-                            // console.log('method resolver run-->', it.config?.resolver, data);
+                            // console.log('method resolver run-->', it.config?.resolver, routerModule);
                             if (it.config?.resolver) {
                                 const execute = typeof it.config.resolver === 'function' ? this.simstanceManager.getOrNewSim(it.config.resolver) : it.config.resolver;
                                 data = await execute?.resolve?.(data, rr);
@@ -124,7 +128,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
                                 headers[HttpHeaders.ContentType] = it.config?.res?.contentType;
                             }
 
-                            // console.log('--?', data, typeof data, typeof data === 'object');
+                            // console.log('--?', routerModule, typeof routerModule, typeof routerModule === 'object');
                             if ((it.config?.res?.contentType?.toLowerCase().indexOf(Mimes.ApplicationJson.toLowerCase()) ?? -1) > -1) {
                                 data = JSON.stringify(data);
                             } else if (data && typeof data === 'object') {

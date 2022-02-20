@@ -37,4 +37,3 @@ export class HttpServerOption extends SimOption {
         this.noSuchRouteEndPointMappingThrow = noSuchRouteEndPointMappingThrow;
     }
 }
-
