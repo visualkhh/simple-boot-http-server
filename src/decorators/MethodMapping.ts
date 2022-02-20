@@ -7,7 +7,7 @@ import {HttpMethod} from '../codes/HttpMethod';
 
 export enum UrlMappingSituationType {
     REQ_JSON_BODY = 'SIMPLE_BOOT_HTTP_SERVER://URLMAPPING/REQ_JSON_BODY',
-    REQ_FORM_URL_BODY = 'SIMPLE_BOOT_HTTP_SERVER://URLMAPPING/REQ_FORM_URL_BODY',
+    REQ_FORM_URL_BODY = 'SIMPLE_BOOT_HTTP_SERVER://URLMAPPING/REQ_FORM_URL_BODY'
 }
 export type MappingConfig = {
     method: HttpMethod | string,

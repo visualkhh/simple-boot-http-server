@@ -8,6 +8,7 @@ import {MultipartData} from './datas/MultipartData';
 import {ReqFormUrlBody} from './datas/body/ReqFormUrlBody';
 import {ReqJsonBody} from './datas/body/ReqJsonBody';
 import {ReqHeader} from './datas/ReqHeader';
+import {ReqMultipartFormBody} from './datas/body/ReqMultipartFormBody';
 // https://masteringjs.io/tutorials/node/http-request
 // https://nodejs.org/ko/docs/guides/anatomy-of-an-http-transaction/
 export class RequestResponse {
@@ -180,10 +181,14 @@ export class RequestResponse {
         });
     }
 
+    reqBodyReqMultipartFormBody(): Promise<ReqMultipartFormBody> {
+        return this.reqBodyMultipartFormData().then(it => new ReqMultipartFormBody(it))
+    }
+
     resBodyJsonData<T>(): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             let data = '';
-            this.res.on('data', chunk => data += chunk);
+            this.res.on('data', (chunk) => data += chunk);
             this.res.on('error', err => reject(err));
             this.res.on('end', () => resolve(JSON.parse(data)));
         });

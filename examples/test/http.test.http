@@ -19,7 +19,7 @@ Accept: application/json
 GET http://httpbin.org/status/301
 
 ### GET request with dynamic variables
-GET http://httpbin.org/anything?id={{$uuid}}&ts={{$timestamp}}
+GET http://localhost:8081/
 
 ###
 

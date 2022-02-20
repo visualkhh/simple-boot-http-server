@@ -19,6 +19,8 @@ import {ReqFormUrlBody} from './models/datas/body/ReqFormUrlBody';
 import {ReqJsonBody} from './models/datas/body/ReqJsonBody';
 import {ReqHeader} from './models/datas/ReqHeader';
 import {RouterModule} from 'simple-boot-core/route/RouterModule';
+import {MultipartData} from './models/datas/MultipartData';
+import {ReqMultipartFormBody} from './models/datas/body/ReqMultipartFormBody';
 
 export class SimpleBootHttpServer extends SimpleApplication {
     constructor(public rootRouter: ConstructorType<Object>, public option: HttpServerOption = new HttpServerOption()) {
@@ -74,7 +76,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
                             .filter(it => it.config?.req?.contentType ? (!!it.config?.req?.contentType?.find(sit => rr.reqHasContentTypeHeader(sit))) : true)
                             .filter(it => it.config?.req?.accept ? (!!it.config?.req?.accept?.find(sit => rr.reqHasAcceptHeader(sit))) : true);
 
-                        console.dir(methods, {depth: 5});
+                        // console.dir(methods, {depth: 5});
 
                         if (methods[0]) {
                             const it = methods[0];
@@ -105,16 +107,22 @@ export class SimpleBootHttpServer extends SimpleApplication {
                                     otherStorage.set(ReqJsonBody, await rr.reqBodyReqJsonBody())
                                 } else if (paramType === URLSearchParams) {
                                     otherStorage.set(URLSearchParams, rr.reqUrlSearchParamsType)
+                                } else if (paramType === ReqMultipartFormBody) {
+                                    otherStorage.set(ReqMultipartFormBody, rr.reqBodyReqMultipartFormBody())
                                 } else if (paramType === ReqHeader) {
                                     otherStorage.set(ReqHeader, rr.reqHeaderObj)
                                 }
                             }
 
                             // execute !!!
-                            let data = await this.simstanceManager.executeBindParameterSimPromise({
+                            let data = this.simstanceManager.executeBindParameterSim({
                                 target: moduleInstance,
                                 targetKey: it.propertyKey
                             }, otherStorage);
+                            // let data = await this.simstanceManager.executeBindParameterSimPromise({
+                            //     target: moduleInstance,
+                            //     targetKey: it.propertyKey
+                            // }, otherStorage);
 
                             // console.log('method resolver run-->', it.config?.resolver, routerModule);
                             if (it.config?.resolver) {
