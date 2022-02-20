@@ -16,7 +16,7 @@ export class Hello {
     constructor() {
     }
 
-    @ExceptionHandler()
+    @ExceptionHandler({throw: true})
     exception() {
         console.log('exception--->');
     }
