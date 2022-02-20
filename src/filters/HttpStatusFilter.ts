@@ -1,5 +1,4 @@
-import { Filter } from '../filters/Filter';
-import {IncomingMessage, ServerResponse} from 'http';
+import {Filter} from '../filters/Filter';
 import {HttpStatus} from 'codes/HttpStatus';
 import {RequestResponse} from '../models/RequestResponse';
 import {SimpleBootHttpServer} from '../SimpleBootHttpServer';
@@ -11,12 +10,12 @@ export class HttpStatusFilter implements Filter {
 
     async before(rr: RequestResponse, app: SimpleBootHttpServer) {
         // res.writeHead(this.httpStatus);
-        rr.res.statusCode = this.httpStatus;
-        rr.res.end();
+        rr.resStatusCode(this.httpStatus);
+        rr.resEnd();
         return false;
     }
 
-     async after(rr: RequestResponse, app: SimpleBootHttpServer) {
+    async after(rr: RequestResponse, app: SimpleBootHttpServer) {
         return true;
     }
 }
