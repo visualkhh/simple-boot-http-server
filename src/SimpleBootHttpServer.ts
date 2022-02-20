@@ -19,7 +19,6 @@ import {ReqFormUrlBody} from './models/datas/body/ReqFormUrlBody';
 import {ReqJsonBody} from './models/datas/body/ReqJsonBody';
 import {ReqHeader} from './models/datas/ReqHeader';
 import {RouterModule} from 'simple-boot-core/route/RouterModule';
-import {MultipartData} from './models/datas/MultipartData';
 import {ReqMultipartFormBody} from './models/datas/body/ReqMultipartFormBody';
 
 export class SimpleBootHttpServer extends SimpleApplication {
@@ -62,7 +61,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
                 }
 
                 // body.. something..
-                if (!rr.res.finished || !rr.res.writableEnded) {
+                if (!rr.resIsDone()) {
                     const routerModule = await this.routing(rr.reqIntent);
                     otherStorage.set(RouterModule, routerModule);
                     const moduleInstance = routerModule?.getModuleInstance?.();
@@ -115,7 +114,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
                             }
 
                             // execute !!!
-                            let data = this.simstanceManager.executeBindParameterSim({
+                            let data = await this.simstanceManager.executeBindParameterSimPromise({
                                 target: moduleInstance,
                                 targetKey: it.propertyKey
                             }, otherStorage);
@@ -145,7 +144,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
 
                             rr.resSetHeaders(headers)
                             rr.resSetStatusCode(status);
-                            rr.resEnd(data);
+                            rr.resWrite(data);
                         }
                     }
 
@@ -177,15 +176,11 @@ export class SimpleBootHttpServer extends SimpleApplication {
                         target: execute,
                         targetKey: target.propertyKey
                     }, otherStorage);
-                    // await this.simstanceManager.executeBindParameterSim({
-                    //     target: execute,
-                    //     targetKey: target.propertyKey
-                    // }, otherStorage);
                 }
+            }
 
-                if (!rr.resIsDone()) {
-                    rr.resEnd();
-                }
+            if (!rr.resIsDone()) {
+                rr.resEnd();
             }
 
             res.on('close', () => {
@@ -198,6 +193,10 @@ export class SimpleBootHttpServer extends SimpleApplication {
                         }
                     }
                 }
+
+                if (!rr.resIsDone()) {
+                    rr.resEnd();
+                }
             });
 
             res.on('error', () => {
@@ -209,6 +208,10 @@ export class SimpleBootHttpServer extends SimpleApplication {
                         } catch (e) {
                         }
                     }
+                }
+
+                if (!rr.resIsDone()) {
+                    rr.resEnd();
                 }
             });
         });

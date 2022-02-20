@@ -28,7 +28,7 @@ export class Hello {
         console.log('-11->', routerModule.intent)
         console.log('-11->', routerModule.pathData)
         console.log('-11->', routerModule.queryParamsAfterDecodeURI)
-        throw new Error('------eeeeeeee---------');
+        // throw new Error('------eeeeeeee---------');
         return {a: 1}
         // rr.res.setHeader('Content-Type', 'application/json');
         // rr.res.end(JSON.stringify({ a: 1 }));

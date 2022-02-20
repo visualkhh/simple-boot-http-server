@@ -12,7 +12,8 @@ import {ReqMultipartFormBody} from './datas/body/ReqMultipartFormBody';
 // https://masteringjs.io/tutorials/node/http-request
 // https://nodejs.org/ko/docs/guides/anatomy-of-an-http-transaction/
 export class RequestResponse {
-    constructor(public req: IncomingMessage, public res: ServerResponse) {
+    protected resWriteChunk: any;
+    constructor(private req: IncomingMessage, private res: ServerResponse) {
     }
 
     get reqRemoteAddress(): string | undefined {
@@ -228,7 +229,9 @@ export class RequestResponse {
     }
 
     resStatusCode(code?: undefined): number;
+    // eslint-disable-next-line no-dupe-class-members
     resStatusCode(code: number): RequestResponseChain<number>;
+    // eslint-disable-next-line no-dupe-class-members
     resStatusCode(code: number|undefined): number | RequestResponseChain<number> {
         if (code) {
             this.res.statusCode = code;
@@ -274,27 +277,48 @@ export class RequestResponse {
     //     this.res.end();
     // }
 
-    resWrite(data: string | Buffer, encoding: BufferEncoding = 'utf8') {
-        return new RequestResponseChain(this.req, this.res, this.res.write(data, encoding));
+    // eslint-disable-next-line no-undef
+    resWrite(chunk: string | Buffer | any, encoding: BufferEncoding = 'utf8') {
+        this.resWriteChunk = chunk;
+        return new RequestResponseChain(this.req, this.res, this.resWriteChunk);
     }
 
-    resWriteJson(data: any, encoding: BufferEncoding = 'utf8') {
-        return new RequestResponseChain(this.req, this.res, this.resWrite(JSON.stringify(data), encoding));
+    // eslint-disable-next-line no-undef
+    resWriteJson(chunk: any, encoding: BufferEncoding = 'utf8') {
+        return this.resWrite(this.resWrite(JSON.stringify(chunk), encoding));
     }
 
     resSetHeader(key: HttpHeaders | string, value: string | string[]) {
-        return new RequestResponseChain(this.req, this.res, this.res.setHeader(key.toLowerCase(), value));
+        return this.createRequestResponseChain(this.res.setHeader(key.toLowerCase(), value));
     }
 
     resSetHeaders(headers: { [key: string]: string | string[] }) {
         Object.entries(headers).forEach(([key, value]) => this.resSetHeader(key, value));
-        return new RequestResponseChain(this.req, this.res);
+        return this.createRequestResponseChain();
     }
 
     resEnd(chunk?: any) {
-        this.res.end(chunk);
-        return new RequestResponseChain(this.req, this.res);
+        this.resWriteChunk = chunk ?? this.resWriteChunk;
+        this.res.end(this.resWriteChunk);
+        return this.createRequestResponseChain();
     }
+
+    // writeContinue(callback?: () => void) {
+    //     this.res.writeContinue(callback);
+    //     return new RequestResponseChain(this.req, this.res);
+    // }
+
+    createRequestResponseChain<T = any>(data?: T) {
+        const requestResponseChain = new RequestResponseChain(this.req, this.res, data);
+        requestResponseChain.resWriteChunk = this.resWriteChunk;
+        return requestResponseChain;
+    }
+
+    // reqWrite(chunk?: any) {
+    //     this.resWriteChunk = chunk;
+    //     // this.res.write(chunk);
+    //     return this.createRequestResponseChain();
+    // }
 
     resWriteHead(statusCode: number, headers?: OutgoingHttpHeaders | OutgoingHttpHeader[] | { [key: string]: string | string[] }) {
         return new RequestResponseChain(this.req, this.res, this.res.writeHead(statusCode, headers));

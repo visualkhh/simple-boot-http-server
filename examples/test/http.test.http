@@ -20,6 +20,7 @@ GET http://httpbin.org/status/301
 
 ### GET request with dynamic variables
 GET http://localhost:8081/
+Content-Type: application/json
 
 ###
 
