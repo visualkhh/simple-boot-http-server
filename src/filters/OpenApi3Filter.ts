@@ -110,7 +110,7 @@ export type OpenApi3FilterConfig = {
             email?: string;
         }
     }
-    servers: {url: string}[],
+    servers?: {url: string}[],
 }
 const DefulatData: OpenApiType = {
     openapi: '3.0.1',
@@ -123,8 +123,8 @@ const DefulatData: OpenApiType = {
 export class OpenApi3Filter implements Filter {
     private openApiConfig: any;
 
-    constructor(public config: {path: string, excludePath?: {method: string, path: string}[]}, openApiConfig: OpenApi3FilterConfig) {
-        this.openApiConfig = Object.assign(Object.assign({}, DefulatData), openApiConfig)
+    constructor(public config: {path: string, excludePath?: {method: string, path: string}[]}, openApiConfig?: OpenApi3FilterConfig) {
+        this.openApiConfig = Object.assign(Object.assign({}, DefulatData), openApiConfig ?? {})
     }
 
     async before(rr: RequestResponse, app: SimpleBootHttpServer) {

@@ -20,6 +20,8 @@ import {ReqJsonBody} from './models/datas/body/ReqJsonBody';
 import {ReqHeader} from './models/datas/ReqHeader';
 import {RouterModule} from 'simple-boot-core/route/RouterModule';
 import {ReqMultipartFormBody} from './models/datas/body/ReqMultipartFormBody';
+import {execValidation, execValidationInValid, getValidIndex} from 'simple-boot-core/decorators/validate/Validation';
+import {ValidException} from 'simple-boot-core/errors/ValidException';
 
 export class SimpleBootHttpServer extends SimpleApplication {
     constructor(public rootRouter: ConstructorType<Object>, public option: HttpServerOption = new HttpServerOption()) {
@@ -81,21 +83,39 @@ export class SimpleBootHttpServer extends SimpleApplication {
                             const it = methods[0];
                             const paramTypes = ReflectUtils.getParameterTypes(moduleInstance, it.propertyKey)
                             const injects = getInject(moduleInstance, it.propertyKey);
+                            const validIndexs = getValidIndex(moduleInstance, it.propertyKey);
                             if (injects) {
                                 const isJson = injects.find(it => it.config?.situationType === UrlMappingSituationType.REQ_JSON_BODY);
                                 const isFormUrl = injects.find(it => it.config?.situationType === UrlMappingSituationType.REQ_FORM_URL_BODY);
-                                const ss = new SituationTypeContainers();
+                                const siturationContainers = new SituationTypeContainers();
                                 if (isJson) {
-                                    const data = await rr.reqBodyJsonData()
-                                    ss.push(new SituationTypeContainer({situationType: UrlMappingSituationType.REQ_JSON_BODY, data}));
+                                    let data = await rr.reqBodyJsonData()
+                                    if (isJson.type) {
+                                       data = Object.assign(new isJson.type(), data);
+                                    }
+                                    if (validIndexs.includes(isJson.index)) {
+                                        const inValid = execValidationInValid(data);
+                                        if ((inValid?.length ?? 0) > 0 ) {
+                                            throw new ValidException(inValid);
+                                        }
+                                    }
+                                    siturationContainers.push(new SituationTypeContainer({situationType: UrlMappingSituationType.REQ_JSON_BODY, data}));
                                 }
                                 if (isFormUrl) {
-                                    const data = await rr.reqBodyFormUrlData()
-                                    ss.push(new SituationTypeContainer({situationType: UrlMappingSituationType.REQ_FORM_URL_BODY, data}));
+                                    let data = await rr.reqBodyFormUrlData()
+                                    if (isFormUrl.type) {
+                                        data = Object.assign(new isFormUrl.type(), data);
+                                    }
+                                    if (validIndexs.includes(isFormUrl.index)) {
+                                        const inValid = execValidationInValid(data);
+                                        if ((inValid?.length ?? 0) > 0 ) {
+                                            throw new ValidException(inValid);
+                                        }
+                                    }
+                                    siturationContainers.push(new SituationTypeContainer({situationType: UrlMappingSituationType.REQ_FORM_URL_BODY, data}));
                                 }
-
-                                if (ss.length) {
-                                    otherStorage.set(SituationTypeContainers, ss);
+                                if (siturationContainers.length) {
+                                    otherStorage.set(SituationTypeContainers, siturationContainers);
                                 }
                             }
                             // console.log('method run-->', it, paramTypes);
@@ -118,11 +138,6 @@ export class SimpleBootHttpServer extends SimpleApplication {
                                 target: moduleInstance,
                                 targetKey: it.propertyKey
                             }, otherStorage);
-                            // let data = await this.simstanceManager.executeBindParameterSimPromise({
-                            //     target: moduleInstance,
-                            //     targetKey: it.propertyKey
-                            // }, otherStorage);
-
                             // console.log('method resolver run-->', it.config?.resolver, routerModule);
                             if (it.config?.resolver) {
                                 const execute = typeof it.config.resolver === 'function' ? this.simstanceManager.getOrNewSim(it.config.resolver) : it.config.resolver;

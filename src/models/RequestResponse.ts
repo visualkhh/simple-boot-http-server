@@ -170,15 +170,12 @@ export class RequestResponse {
         });
     }
 
-    reqBodyReqJsonBody<T>(): Promise<T> {
-        return new Promise<T>((resolve, reject) => {
+    reqBodyReqJsonBody(): Promise<ReqJsonBody> {
+        return new Promise<ReqJsonBody>((resolve, reject) => {
             let data = '';
             this.req.on('data', (chunk) => data += chunk);
             this.req.on('error', err => reject(err));
-            this.req.on('end', () => {
-                const parse = Object.assign(new ReqJsonBody(), JSON.parse(data));
-                resolve(parse)
-            });
+            this.req.on('end', () => resolve(Object.assign(new ReqJsonBody(), data ? JSON.parse(data) : {})));
         });
     }
 
@@ -186,12 +183,12 @@ export class RequestResponse {
         return this.reqBodyMultipartFormData().then(it => new ReqMultipartFormBody(it))
     }
 
-    resBodyJsonData<T>(): Promise<T> {
-        return new Promise<T>((resolve, reject) => {
+    resBodyJsonData<T>(): Promise<T | null> {
+        return new Promise<T | null>((resolve, reject) => {
             let data = '';
             this.res.on('data', (chunk) => data += chunk);
             this.res.on('error', err => reject(err));
-            this.res.on('end', () => resolve(JSON.parse(data)));
+            this.res.on('end', () => resolve(data ? JSON.parse(data) : null));
         });
     }
 
@@ -270,7 +267,7 @@ export class RequestResponse {
 
     resSetStatusCode(statusCode: number) {
         this.res.statusCode = statusCode;
-        return new RequestResponseChain(this.req, this.res, this.res.statusCode);
+        return this.createRequestResponseChain(this.res.statusCode);
     }
 
     // resEnd() {
@@ -280,7 +277,7 @@ export class RequestResponse {
     // eslint-disable-next-line no-undef
     resWrite(chunk: string | Buffer | any, encoding: BufferEncoding = 'utf8') {
         this.resWriteChunk = chunk;
-        return new RequestResponseChain(this.req, this.res, this.resWriteChunk);
+        return this.createRequestResponseChain(this.resWriteChunk);
     }
 
     // eslint-disable-next-line no-undef
@@ -308,12 +305,6 @@ export class RequestResponse {
     //     return new RequestResponseChain(this.req, this.res);
     // }
 
-    createRequestResponseChain<T = any>(data?: T) {
-        const requestResponseChain = new RequestResponseChain(this.req, this.res, data);
-        requestResponseChain.resWriteChunk = this.resWriteChunk;
-        return requestResponseChain;
-    }
-
     // reqWrite(chunk?: any) {
     //     this.resWriteChunk = chunk;
     //     // this.res.write(chunk);
@@ -321,7 +312,7 @@ export class RequestResponse {
     // }
 
     resWriteHead(statusCode: number, headers?: OutgoingHttpHeaders | OutgoingHttpHeader[] | { [key: string]: string | string[] }) {
-        return new RequestResponseChain(this.req, this.res, this.res.writeHead(statusCode, headers));
+        return this.createRequestResponseChain(this.res.writeHead(statusCode, headers));
     }
 
     resIsDone() {
@@ -329,6 +320,11 @@ export class RequestResponse {
         // return new RequestResponseChain(this.req, this.res, this.res.finished || this.res.writableEnded);
     }
 
+    createRequestResponseChain<T = any>(data?: T) {
+        const requestResponseChain = new RequestResponseChain(this.req, this.res, data);
+        requestResponseChain.resWriteChunk = this.resWriteChunk;
+        return requestResponseChain;
+    }
     // res.on("readable", () => {
     //     console.log('readable???')
     // });
