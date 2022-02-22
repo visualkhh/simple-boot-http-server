@@ -33,6 +33,38 @@ export class SimpleBootHttpServer extends SimpleApplication {
         super.run(otherInstanceSim);
         const server = this.option.serverOption ? new Server(this.option.serverOption) : new Server();
         server.on('request', async (req: IncomingMessage, res: ServerResponse) => {
+            res.on('close', () => {
+                if (this.option.closeEndPoints) {
+                    for (const it of this.option.closeEndPoints) {
+                        try {
+                            const execute = (typeof it === 'function' ? this.simstanceManager.getOrNewSim(it) : it) as EndPoint;
+                            execute?.endPoint(rr, this);
+                        } catch (e) {
+                        }
+                    }
+                }
+
+                if (!rr.resIsDone()) {
+                    rr.resEnd();
+                }
+            });
+            res.on('error', () => {
+                if (this.option.errorEndPoints) {
+                    for (const it of this.option.errorEndPoints) {
+                        try {
+                            const execute = (typeof it === 'function' ? this.simstanceManager.getOrNewSim(it) : it) as EndPoint;
+                            execute?.endPoint(rr, this);
+                        } catch (e) {
+                        }
+                    }
+                }
+
+                if (!rr.resIsDone()) {
+                    rr.resEnd();
+                }
+            });
+
+
             const rr = new RequestResponse(req, res);
             const otherStorage = new Map<ConstructorType<any>, any>();
             otherStorage.set(RequestResponse, rr);
@@ -92,15 +124,18 @@ export class SimpleBootHttpServer extends SimpleApplication {
                                 if (isJson) {
                                     let data = await rr.reqBodyJsonData()
                                     if (isJson.type) {
-                                       data = Object.assign(new isJson.type(), data);
+                                        data = Object.assign(new isJson.type(), data);
                                     }
                                     if (validIndexs.includes(isJson.index)) {
                                         const inValid = execValidationInValid(data);
-                                        if ((inValid?.length ?? 0) > 0 ) {
+                                        if ((inValid?.length ?? 0) > 0) {
                                             throw new ValidException(inValid);
                                         }
                                     }
-                                    siturationContainers.push(new SituationTypeContainer({situationType: UrlMappingSituationType.REQ_JSON_BODY, data}));
+                                    siturationContainers.push(new SituationTypeContainer({
+                                        situationType: UrlMappingSituationType.REQ_JSON_BODY,
+                                        data
+                                    }));
                                 }
                                 if (isFormUrl) {
                                     let data = await rr.reqBodyFormUrlData()
@@ -109,11 +144,14 @@ export class SimpleBootHttpServer extends SimpleApplication {
                                     }
                                     if (validIndexs.includes(isFormUrl.index)) {
                                         const inValid = execValidationInValid(data);
-                                        if ((inValid?.length ?? 0) > 0 ) {
+                                        if ((inValid?.length ?? 0) > 0) {
                                             throw new ValidException(inValid);
                                         }
                                     }
-                                    siturationContainers.push(new SituationTypeContainer({situationType: UrlMappingSituationType.REQ_FORM_URL_BODY, data}));
+                                    siturationContainers.push(new SituationTypeContainer({
+                                        situationType: UrlMappingSituationType.REQ_FORM_URL_BODY,
+                                        data
+                                    }));
                                 }
                                 if (siturationContainers.length) {
                                     otherStorage.set(SituationTypeContainers, siturationContainers);
@@ -184,7 +222,10 @@ export class SimpleBootHttpServer extends SimpleApplication {
                 }
                 if (e && typeof e === 'object') {
                     otherStorage.set(e.constructor as ConstructorType<any>, e);
-                    otherStorage.set(SituationTypeContainer, new SituationTypeContainer({situationType: ExceptionHandlerSituationType.ERROR_OBJECT, data: e}));
+                    otherStorage.set(SituationTypeContainer, new SituationTypeContainer({
+                        situationType: ExceptionHandlerSituationType.ERROR_OBJECT,
+                        data: e
+                    }));
                 }
                 const target = targetExceptionHandler(execute, e);
                 if (target) {
@@ -199,37 +240,6 @@ export class SimpleBootHttpServer extends SimpleApplication {
                 rr.resEnd();
             }
 
-            res.on('close', () => {
-                if (this.option.closeEndPoints) {
-                    for (const it of this.option.closeEndPoints) {
-                        try {
-                            const execute = (typeof it === 'function' ? this.simstanceManager.getOrNewSim(it) : it) as EndPoint;
-                            execute?.endPoint(rr, this);
-                        } catch (e) {
-                        }
-                    }
-                }
-
-                if (!rr.resIsDone()) {
-                    rr.resEnd();
-                }
-            });
-
-            res.on('error', () => {
-                if (this.option.errorEndPoints) {
-                    for (const it of this.option.errorEndPoints) {
-                        try {
-                            const execute = (typeof it === 'function' ? this.simstanceManager.getOrNewSim(it) : it) as EndPoint;
-                            execute?.endPoint(rr, this);
-                        } catch (e) {
-                        }
-                    }
-                }
-
-                if (!rr.resIsDone()) {
-                    rr.resEnd();
-                }
-            });
         });
         server.listen(this.option.listen.port, this.option.listen.hostname, this.option.listen.backlog, this.option.listen.listeningListener);
         // server.on('request', (req: IncomingMessage, res: ServerResponse) => {
