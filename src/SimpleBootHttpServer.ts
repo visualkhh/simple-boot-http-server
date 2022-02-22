@@ -33,12 +33,15 @@ export class SimpleBootHttpServer extends SimpleApplication {
         super.run(otherInstanceSim);
         const server = this.option.serverOption ? new Server(this.option.serverOption) : new Server();
         server.on('request', async (req: IncomingMessage, res: ServerResponse) => {
-            res.on('close', () => {
+            res.on('close', async () => {
                 if (this.option.closeEndPoints) {
                     for (const it of this.option.closeEndPoints) {
                         try {
                             const execute = (typeof it === 'function' ? this.simstanceManager.getOrNewSim(it) : it) as EndPoint;
-                            execute?.endPoint(rr, this);
+                            const endPoint = execute?.endPoint(rr, this);
+                            if (endPoint instanceof Promise) {
+                                await endPoint;
+                            }
                         } catch (e) {
                         }
                     }
@@ -48,12 +51,15 @@ export class SimpleBootHttpServer extends SimpleApplication {
                     rr.resEnd();
                 }
             });
-            res.on('error', () => {
+            res.on('error', async () => {
                 if (this.option.errorEndPoints) {
                     for (const it of this.option.errorEndPoints) {
                         try {
                             const execute = (typeof it === 'function' ? this.simstanceManager.getOrNewSim(it) : it) as EndPoint;
-                            execute?.endPoint(rr, this);
+                            const endPoint = execute?.endPoint(rr, this);
+                            if (endPoint instanceof Promise) {
+                                await endPoint;
+                            }
                         } catch (e) {
                         }
                     }

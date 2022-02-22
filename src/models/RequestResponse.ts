@@ -13,6 +13,8 @@ import {ReqMultipartFormBody} from './datas/body/ReqMultipartFormBody';
 // https://nodejs.org/ko/docs/guides/anatomy-of-an-http-transaction/
 export class RequestResponse {
     protected resWriteChunk: any;
+    protected reqBodyChunk?: Buffer;
+
     constructor(private req: IncomingMessage, private res: ServerResponse) {
     }
 
@@ -53,6 +55,9 @@ export class RequestResponse {
         return reqUrlObj1.pathname + (reqUrlObj1.searchParams.toString() ? '?' + reqUrlObj1.searchParams.toString() : '')
     }
 
+    get reqReadable() {
+        return this.req.readable;
+    }
     get reqIntent() {
         return new Intent(this.reqPathSearchParamUrl);
     }
@@ -67,10 +72,17 @@ export class RequestResponse {
 
     reqBodyData(): Promise<Buffer> {
         return new Promise<Buffer>((resolve, reject) => {
-            const data: Uint8Array[] = [];
-            this.req.on('data', (chunk) => data.push(chunk));
-            this.req.on('error', err => reject(err));
-            this.req.on('end', () => resolve(Buffer.concat(data)));
+            if (this.reqReadable) {
+                const data: Uint8Array[] = [];
+                this.req.on('data', (chunk) => data.push(chunk));
+                this.req.on('error', err => reject(err));
+                this.req.on('end', () => {
+                    this.reqBodyChunk = Buffer.concat(data);
+                    resolve(this.reqBodyChunk);
+                });
+            } else {
+                resolve(this.reqBodyChunk ?? Buffer.alloc(0));
+            }
         });
     }
 
@@ -108,88 +120,52 @@ export class RequestResponse {
         });
     }
 
-    reqBodyStringData(): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            let data = '';
-            this.req.on('data', (chunk) => data += chunk);
-            this.req.on('error', err => reject(err));
-            this.req.on('end', () => resolve(data));
-        });
+    async reqBodyStringData(): Promise<string> {
+        const data = (await this.reqBodyData()).toString()
+        return data;
     }
 
-    reqBodyJsonData<T>(): Promise<T> {
-        return new Promise<T>((resolve, reject) => {
-            let data = '';
-            this.req.on('data', (chunk) => data += chunk);
-            this.req.on('error', err => reject(err));
-            this.req.on('end', () => resolve(JSON.parse(data)));
-        });
+    async reqBodyJsonData<T>(): Promise<T> {
+        return JSON.parse(await this.reqBodyStringData());
     }
 
-    reqBodyFormUrlData<T>(): Promise<T> {
-        return new Promise<T>((resolve, reject) => {
-            let data = '';
-            this.req.on('data', (chunk) => data += chunk);
-            this.req.on('error', err => reject(err));
-            this.req.on('end', () => {
-                const formData = {} as any;
-                Array.from(new URLSearchParams(data).entries()).forEach(([k, v]) => {
-                    const target = formData[k];
-                    if (Array.isArray(target)) {
-                        target.push(v);
-                    } else if (typeof target === 'string') {
-                        formData[k] = [target, v]
-                    } else {
-                        formData[k] = v;
-                    }
-                });
-                resolve(formData);
-            });
+    async reqBodyFormUrlData<T>(): Promise<T> {
+        const data = (await this.reqBodyStringData())
+        const formData = {} as any;
+        Array.from(new URLSearchParams(data).entries()).forEach(([k, v]) => {
+            const target = formData[k];
+            if (Array.isArray(target)) {
+                target.push(v);
+            } else if (typeof target === 'string') {
+                formData[k] = [target, v]
+            } else {
+                formData[k] = v;
+            }
         });
+        return formData;
     }
 
-    reqBodyReqFormUrlBody(): Promise<ReqFormUrlBody> {
-        return new Promise<ReqFormUrlBody>((resolve, reject) => {
-            let data = '';
-            this.req.on('data', (chunk) => data += chunk);
-            this.req.on('error', err => reject(err));
-            this.req.on('end', () => {
-                const formData = new ReqFormUrlBody();
-                Array.from(new URLSearchParams(data).entries()).forEach(([k, v]) => {
-                    const target = formData[k];
-                    if (Array.isArray(target)) {
-                        target.push(v);
-                    } else if (typeof target === 'string') {
-                        formData[k] = [target, v]
-                    } else {
-                        formData[k] = v;
-                    }
-                });
-                resolve(formData);
-            });
-        });
+    async reqBodyReqFormUrlBody() {
+        const data = await this.reqBodyFormUrlData()
+        return Object.assign(new ReqFormUrlBody(), data);
     }
 
-    reqBodyReqJsonBody(): Promise<ReqJsonBody> {
-        return new Promise<ReqJsonBody>((resolve, reject) => {
-            let data = '';
-            this.req.on('data', (chunk) => data += chunk);
-            this.req.on('error', err => reject(err));
-            this.req.on('end', () => resolve(Object.assign(new ReqJsonBody(), data ? JSON.parse(data) : {})));
-        });
+    async reqBodyReqJsonBody(): Promise<ReqJsonBody> {
+        const data = (await this.reqBodyStringData());
+        return Object.assign(new ReqJsonBody(), data ? JSON.parse(data) : {})
     }
 
     reqBodyReqMultipartFormBody(): Promise<ReqMultipartFormBody> {
         return this.reqBodyMultipartFormData().then(it => new ReqMultipartFormBody(it))
     }
 
-    resBodyJsonData<T>(): Promise<T | null> {
-        return new Promise<T | null>((resolve, reject) => {
-            let data = '';
-            this.res.on('data', (chunk) => data += chunk);
-            this.res.on('error', err => reject(err));
-            this.res.on('end', () => resolve(data ? JSON.parse(data) : null));
-        });
+    async resBodyJsonData<T>(): Promise<T | null> {
+        const data = (await this.reqBodyData()).toString();
+        return data ? JSON.parse(data) : null;
+    }
+
+    async resBodyStringData() {
+        return (await this.reqBodyData()).toString();
     }
 
     reqMethod() {
@@ -229,7 +205,7 @@ export class RequestResponse {
     // eslint-disable-next-line no-dupe-class-members
     resStatusCode(code: number): RequestResponseChain<number>;
     // eslint-disable-next-line no-dupe-class-members
-    resStatusCode(code: number|undefined): number | RequestResponseChain<number> {
+    resStatusCode(code: number | undefined): number | RequestResponseChain<number> {
         if (code) {
             this.res.statusCode = code;
             return new RequestResponseChain<number>(this.req, this.res, this.res.statusCode);
@@ -294,10 +270,15 @@ export class RequestResponse {
         return this.createRequestResponseChain();
     }
 
-    resEnd(chunk?: any) {
+    resEnd(chunk?: any): void {
         this.resWriteChunk = chunk ?? this.resWriteChunk;
-        this.res.end(this.resWriteChunk);
-        return this.createRequestResponseChain();
+        if(this.req.readable) {
+            this.reqBodyData().then(it => {
+                this.res.end(this.resWriteChunk);
+            })
+        } else {
+            this.res.end(this.resWriteChunk);
+        }
     }
 
     // writeContinue(callback?: () => void) {
@@ -323,8 +304,10 @@ export class RequestResponse {
     createRequestResponseChain<T = any>(data?: T) {
         const requestResponseChain = new RequestResponseChain(this.req, this.res, data);
         requestResponseChain.resWriteChunk = this.resWriteChunk;
+        requestResponseChain.reqBodyChunk = this.reqBodyChunk;
         return requestResponseChain;
     }
+
     // res.on("readable", () => {
     //     console.log('readable???')
     // });
