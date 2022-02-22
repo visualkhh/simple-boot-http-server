@@ -22,6 +22,7 @@ import {RouterModule} from 'simple-boot-core/route/RouterModule';
 import {ReqMultipartFormBody} from './models/datas/body/ReqMultipartFormBody';
 import {execValidation, execValidationInValid, getValidIndex} from 'simple-boot-core/decorators/validate/Validation';
 import {ValidException} from 'simple-boot-core/errors/ValidException';
+import {HttpError} from './errors/HttpError';
 
 export class SimpleBootHttpServer extends SimpleApplication {
     constructor(public rootRouter: ConstructorType<Object>, public option: HttpServerOption = new HttpServerOption()) {
@@ -175,9 +176,9 @@ export class SimpleBootHttpServer extends SimpleApplication {
                     }
                 }
             } catch (e) {
+                rr.resStatusCode(e instanceof HttpError ? e.status : HttpStatus.InternalServerError)
                 const execute = typeof this.option.globalAdvice === 'function' ? this.simstanceManager.getOrNewSim(this.option.globalAdvice) : this.option.globalAdvice;
                 if (!execute) {
-                    rr.resWriteHead(HttpStatus.InternalServerError)
                     rr.resEnd();
                     return;
                 }
