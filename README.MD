@@ -33,21 +33,21 @@ export class Hello {
     @GET()
     get(rr: RequestResponse) {
         console.log('load Hello.get()', rr);
-        rr.res.setHeader('Content-Type', 'application/json');
-        rr.res.end(JSON.stringify({ a: 1 }));
+        rr.resSetHeader('Content-Type', 'application/json');
+        rr.resEnd(JSON.stringify({ a: 1 }));
     }
 }
 ```
 ```typescript
 export class FirstFilter implements Filter {
-    after(req: IncomingMessage, res: ServerResponse, app: SimpleBootHttpServer, sw: boolean): Promise<boolean> {
+    async after(rr: RequestResponse, app: SimpleBootHttpServer, sw: boolean): Promise<boolean> {
         console.log('filter after')
-        return Promise.resolve(true);
+        return true;
     }
 
-    before(req: IncomingMessage, res: ServerResponse, app: SimpleBootHttpServer): Promise<boolean> {
+    async before(rr: RequestResponse, app: SimpleBootHttpServer): Promise<boolean> {
         console.log('filter before')
-        return Promise.resolve(true);
+        return true;
     }
 }
 ```

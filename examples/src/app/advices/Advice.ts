@@ -9,6 +9,6 @@ export class Advice {
     catch(rr: RequestResponse, @Inject({situationType: ExceptionHandlerSituationType.ERROR_OBJECT}) e: any) {
         // rr.resWriteHead(500, {a: '11'}).resEnd();
         rr.resSetHeaders({a: '11'});
-        console.log('exception--->', rr.req.url, e);
+        console.log('exception--->', rr.reqUrl, e);
     }
 }
