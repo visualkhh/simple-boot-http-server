@@ -14,8 +14,19 @@ import {ReqMultipartFormBody} from './datas/body/ReqMultipartFormBody';
 export class RequestResponse {
     protected resWriteChunk: any;
     protected reqBodyChunk?: Buffer;
+    protected req: IncomingMessage;
+    protected res: ServerResponse;
 
-    constructor(private req: IncomingMessage, private res: ServerResponse) {
+    constructor(req: IncomingMessage, res: ServerResponse);
+    constructor(req: RequestResponse);
+    constructor(req: IncomingMessage | RequestResponse, res?: ServerResponse) {
+        if (req instanceof RequestResponse) {
+            this.req = req.req;
+            this.res = req.res;
+        } else {
+            this.req = req;
+            this.res = res!;
+        }
     }
 
     get reqRemoteAddress(): string | undefined {
@@ -270,12 +281,11 @@ export class RequestResponse {
         return this.createRequestResponseChain();
     }
 
-    resEnd(chunk?: any): void {
+    async resEnd(chunk?: any) {
         this.resWriteChunk = chunk ?? this.resWriteChunk;
         if (this.req.readable) {
-            this.reqBodyData().then(it => {
-                this.res.end(this.resWriteChunk);
-            })
+            await this.reqBodyData();
+            this.res.end(this.resWriteChunk);
         } else {
             this.res.end(this.resWriteChunk);
         }

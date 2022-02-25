@@ -24,7 +24,7 @@ export class ResourceFilter implements Filter {
                 // res.writeHead(HttpStatus.Ok, header);
                 rr.resStatusCode(HttpStatus.Ok);
                 rr.resSetHeader(HttpHeaders.ContentType, mime.lookup(resourcePath).toString());
-                rr.resEnd(fs.readFileSync(resourcePath));
+                await rr.resEnd(fs.readFileSync(resourcePath));
                 sw = false;
                 break;
             }
