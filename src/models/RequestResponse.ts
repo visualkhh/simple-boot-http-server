@@ -272,7 +272,7 @@ export class RequestResponse {
 
     resEnd(chunk?: any): void {
         this.resWriteChunk = chunk ?? this.resWriteChunk;
-        if(this.req.readable) {
+        if (this.req.readable) {
             this.reqBodyData().then(it => {
                 this.res.end(this.resWriteChunk);
             })

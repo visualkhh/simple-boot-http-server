@@ -1,21 +1,20 @@
-import {Hello} from './Hello';
 import {Sim} from 'simple-boot-core/decorators/SimDecorator';
 import {Route, Router} from 'simple-boot-core/decorators/route/Router';
-import {GET, POST} from 'simple-boot-http-server/decorators/MethodMapping';
+import {GET} from 'simple-boot-http-server/decorators/MethodMapping';
 import {RequestResponse} from 'simple-boot-http-server/models/RequestResponse';
 import {ReqHeader} from 'simple-boot-http-server/models/datas/ReqHeader';
 import {RouterModule} from 'simple-boot-core/route/RouterModule';
 import {Mimes} from 'simple-boot-http-server/codes/Mimes';
+import {UserRouter} from './UserRouter';
 
 @Sim()
 @Router({
-    path: ''
+    path: '',
+    routers: [UserRouter]
 })
 export class AppRouter {
-    constructor() {
-    }
-
-    @Route({path: '/hello'}) @GET()
+    constructor() {}
+    @Route({path: '/hello'}) @GET({res: {contentType: Mimes.ApplicationJson}})
     hh(rr: RequestResponse, header: ReqHeader, routerModule: RouterModule) {
         return {a: 2}
     }

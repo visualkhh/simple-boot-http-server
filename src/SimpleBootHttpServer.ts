@@ -23,6 +23,7 @@ import {ReqMultipartFormBody} from './models/datas/body/ReqMultipartFormBody';
 import {execValidationInValid, getValidIndex} from 'simple-boot-core/decorators/validate/Validation';
 import {ValidException} from 'simple-boot-core/errors/ValidException';
 import {HttpError} from './errors/HttpError';
+import {getRoute} from 'simple-boot-core/decorators/route/Router';
 
 export class SimpleBootHttpServer extends SimpleApplication {
     constructor(public rootRouter: ConstructorType<Object>, public option: HttpServerOption = new HttpServerOption()) {
@@ -108,12 +109,11 @@ export class SimpleBootHttpServer extends SimpleApplication {
                     let methods: SaveMappingConfig[] = [];
                     if (routerModule && moduleInstance) {
                         // router 클래스 내부에서 선언된 Route일때
-                        // console.log('-=--->', routerModule, routerModule.propertyKeys)
                         if (routerModule.propertyKeys) {
                             const map = routerModule.propertyKeys?.map(it => { return {propertyKey: it, config: getUrlMapping(moduleInstance, it)} as SaveMappingConfig });
                             methods.push(...(map ?? []));
                         } else {
-                            methods.push(...(getUrlMappings(moduleInstance) ?? []));
+                            methods.push(...(getUrlMappings(moduleInstance).filter(it => !getRoute(moduleInstance, it.propertyKey)) ?? []));
                         }
                         
                         methods = methods.filter(it => it && it.propertyKey && it.config && rr.reqMethod()?.toUpperCase() === it.config.method.toUpperCase());
@@ -123,7 +123,6 @@ export class SimpleBootHttpServer extends SimpleApplication {
                         methods = methods
                             .filter(it => it.config?.req?.contentType ? (!!it.config?.req?.contentType?.find(sit => rr.reqHasContentTypeHeader(sit))) : true)
                             .filter(it => it.config?.req?.accept ? (!!it.config?.req?.accept?.find(sit => rr.reqHasAcceptHeader(sit))) : true);
-                        // console.dir(methods, {depth: 5});
                         if (methods[0]) {
                             const it = methods[0];
                             const paramTypes = ReflectUtils.getParameterTypes(moduleInstance, it.propertyKey)
@@ -160,16 +159,13 @@ export class SimpleBootHttpServer extends SimpleApplication {
                                             throw new ValidException(inValid);
                                         }
                                     }
-                                    siturationContainers.push(new SituationTypeContainer({
-                                        situationType: UrlMappingSituationType.REQ_FORM_URL_BODY,
-                                        data
-                                    }));
+                                    siturationContainers.push(new SituationTypeContainer({situationType: UrlMappingSituationType.REQ_FORM_URL_BODY, data}));
                                 }
                                 if (siturationContainers.length) {
                                     otherStorage.set(SituationTypeContainers, siturationContainers);
                                 }
                             }
-                            // console.log('method run-->', it, paramTypes);
+
                             for (const paramType of paramTypes) {
                                 if (paramType === ReqFormUrlBody) {
                                     otherStorage.set(ReqFormUrlBody, await rr.reqBodyReqFormUrlBody())
