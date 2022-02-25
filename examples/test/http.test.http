@@ -1,6 +1,17 @@
 ### GET request with a header
-GET http://localhost:8081
+GET http://localhost:8081/22/world
 Accept: application/json
+
+### GET request with a header
+GET http://localhost:8081/ab/world
+Accept: application/json
+
+### POST request with a header
+POST http://localhost:8081/22/world
+Content-Type: application/json
+Accept: application/json
+
+{"a": "44"}
 
 ### GET request with a header
 GET http://localhost:8081

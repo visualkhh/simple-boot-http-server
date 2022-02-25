@@ -17,8 +17,8 @@ export type MappingConfig = {
     };
 
     req?: {
-        contentType?: string[];
-        accept?: string[];
+        contentType?: (Mimes|string)[];
+        accept?: (Mimes|string)[];
     };
 
     res?: {
@@ -34,14 +34,14 @@ const MappingMetadataKey = Symbol('MappingMetadataKey');
 // const GETMappingMetadataKey = Symbol('GET_METHOD');
 
 export const UrlMapping = (config: MappingConfig): ReflectMethod => {
-    return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+    return (target: any, propertyKey: string | symbol, descriptor: PropertyDescriptor) => {
         const saveMappingConfigs = (ReflectUtils.getMetadata(MappingMetadataKey, target.constructor) ?? []) as SaveMappingConfig[];
         saveMappingConfigs.push({propertyKey, config});
         ReflectUtils.defineMetadata(MappingMetadataKey, saveMappingConfigs, target.constructor);
         ReflectUtils.defineMetadata(MappingMetadataKey, config, target, propertyKey);
     }
 }
-export const getUrlMapping = (target: any, propertyKey: string): MappingConfig => {
+export const getUrlMapping = (target: any, propertyKey: string | symbol): MappingConfig | undefined => {
     return ReflectUtils.getMetadata(MappingMetadataKey, target, propertyKey);
 }
 
@@ -63,7 +63,7 @@ export const GET = (inputConfig: Omit<MappingConfig, 'method'> = {}): ReflectMet
     }
 }
 
-export const getGET = (target: any, propertyKey: string): MappingConfig => {
+export const getGET = (target: any, propertyKey: string | symbol): MappingConfig | undefined => {
     return getUrlMapping(target, propertyKey);
 }
 export const getGETS = (target: any): SaveMappingConfig[] => {
@@ -81,7 +81,7 @@ export const POST = (inputConfig: Omit<MappingConfig, 'method'> = {}): ReflectMe
     }
 }
 
-export const getPOST = (target: any, propertyKey: string): MappingConfig => {
+export const getPOST = (target: any, propertyKey: string | symbol): MappingConfig | undefined => {
     return getUrlMapping(target, propertyKey);
 }
 export const getPOSTS = (target: any): SaveMappingConfig[] => {
@@ -99,7 +99,7 @@ export const DELETE = (inputConfig: Omit<MappingConfig, 'method'> = {}): Reflect
     }
 }
 
-export const getDELETE = (target: any, propertyKey: string): MappingConfig => {
+export const getDELETE = (target: any, propertyKey: string | symbol): MappingConfig | undefined => {
     return getUrlMapping(target, propertyKey);
 }
 export const getDELETES = (target: any): SaveMappingConfig[] => {
@@ -117,7 +117,7 @@ export const PUT = (inputConfig: Omit<MappingConfig, 'method'> = {}): ReflectMet
     }
 }
 
-export const getPUT = (target: any, propertyKey: string): MappingConfig => {
+export const getPUT = (target: any, propertyKey: string | symbol): MappingConfig | undefined => {
     return getUrlMapping(target, propertyKey);
 }
 export const getPUTS = (target: any): SaveMappingConfig[] => {
@@ -135,7 +135,7 @@ export const PATCH = (inputConfig: Omit<MappingConfig, 'method'> = {}): ReflectM
     }
 }
 
-export const getPATCH = (target: any, propertyKey: string): MappingConfig => {
+export const getPATCH = (target: any, propertyKey: string | symbol): MappingConfig | undefined => {
     return getUrlMapping(target, propertyKey);
 }
 export const getPATCHS = (target: any): SaveMappingConfig[] => {
@@ -153,7 +153,7 @@ export const OPTIONS = (inputConfig: Omit<MappingConfig, 'method'> = {}): Reflec
     }
 }
 
-export const getOPTIONS = (target: any, propertyKey: string): MappingConfig => {
+export const getOPTIONS = (target: any, propertyKey: string | symbol): MappingConfig | undefined => {
     return getUrlMapping(target, propertyKey);
 }
 export const getOPTIONSS = (target: any): SaveMappingConfig[] => {
@@ -171,7 +171,7 @@ export const HEAD = (inputConfig: Omit<MappingConfig, 'method'> = {}): ReflectMe
     }
 }
 
-export const getHEAD = (target: any, propertyKey: string): MappingConfig => {
+export const getHEAD = (target: any, propertyKey: string | symbol): MappingConfig | undefined => {
     return getUrlMapping(target, propertyKey);
 }
 export const getHEADS = (target: any): SaveMappingConfig[] => {
@@ -189,7 +189,7 @@ export const TRACE = (inputConfig: Omit<MappingConfig, 'method'> = {}): ReflectM
     }
 }
 
-export const getTRACE = (target: any, propertyKey: string): MappingConfig => {
+export const getTRACE = (target: any, propertyKey: string | symbol): MappingConfig | undefined => {
     return getUrlMapping(target, propertyKey);
 }
 export const getTRACES = (target: any): SaveMappingConfig[] => {
@@ -207,7 +207,7 @@ export const CONNECT = (inputConfig: Omit<MappingConfig, 'method'> = {}): Reflec
     }
 }
 
-export const getCONNECT = (target: any, propertyKey: string): MappingConfig => {
+export const getCONNECT = (target: any, propertyKey: string | symbol): MappingConfig | undefined => {
     return getUrlMapping(target, propertyKey);
 }
 export const getCONNECTS = (target: any): SaveMappingConfig[] => {

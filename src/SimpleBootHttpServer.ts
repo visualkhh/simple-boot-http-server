@@ -3,7 +3,7 @@ import {HttpServerOption} from './option/HttpServerOption';
 import {ConstructorType} from 'simple-boot-core/types/Types';
 import {IncomingMessage, Server, ServerResponse} from 'http'
 import {RequestResponse} from './models/RequestResponse';
-import {getUrlMappings, SaveMappingConfig, UrlMappingSituationType} from './decorators/MethodMapping';
+import {getUrlMapping, getUrlMappings, SaveMappingConfig, UrlMappingSituationType} from './decorators/MethodMapping';
 import {HttpStatus} from './codes/HttpStatus';
 import {HttpHeaders} from './codes/HttpHeaders';
 import {Mimes} from './codes/Mimes';
@@ -20,7 +20,7 @@ import {ReqJsonBody} from './models/datas/body/ReqJsonBody';
 import {ReqHeader} from './models/datas/ReqHeader';
 import {RouterModule} from 'simple-boot-core/route/RouterModule';
 import {ReqMultipartFormBody} from './models/datas/body/ReqMultipartFormBody';
-import {execValidation, execValidationInValid, getValidIndex} from 'simple-boot-core/decorators/validate/Validation';
+import {execValidationInValid, getValidIndex} from 'simple-boot-core/decorators/validate/Validation';
 import {ValidException} from 'simple-boot-core/errors/ValidException';
 import {HttpError} from './errors/HttpError';
 
@@ -70,7 +70,6 @@ export class SimpleBootHttpServer extends SimpleApplication {
                 }
             });
 
-
             const rr = new RequestResponse(req, res);
             const otherStorage = new Map<ConstructorType<any>, any>();
             otherStorage.set(RequestResponse, rr);
@@ -107,17 +106,24 @@ export class SimpleBootHttpServer extends SimpleApplication {
                     otherStorage.set(RouterModule, routerModule);
                     const moduleInstance = routerModule?.getModuleInstance?.();
                     let methods: SaveMappingConfig[] = [];
-                    if (moduleInstance) {
-                        methods.push(...(getUrlMappings(moduleInstance).filter(it => rr.reqMethod()?.toUpperCase() === it.config.method.toUpperCase()) ?? []));
+                    if (routerModule && moduleInstance) {
+                        // router 클래스 내부에서 선언된 Route일때
+                        // console.log('-=--->', routerModule, routerModule.propertyKeys)
+                        if (routerModule.propertyKeys) {
+                            const map = routerModule.propertyKeys?.map(it => { return {propertyKey: it, config: getUrlMapping(moduleInstance, it)} as SaveMappingConfig });
+                            methods.push(...(map ?? []));
+                        } else {
+                            methods.push(...(getUrlMappings(moduleInstance) ?? []));
+                        }
+                        
+                        methods = methods.filter(it => it && it.propertyKey && it.config && rr.reqMethod()?.toUpperCase() === it.config.method.toUpperCase());
                         methods.sort((a, b) => {
                             return ((b.config?.req?.contentType?.length ?? 0) + (b.config?.req?.accept?.length ?? 0)) - ((a.config?.req?.contentType?.length ?? 0) + (a.config?.req?.accept?.length ?? 0));
-                        })
+                        });
                         methods = methods
                             .filter(it => it.config?.req?.contentType ? (!!it.config?.req?.contentType?.find(sit => rr.reqHasContentTypeHeader(sit))) : true)
                             .filter(it => it.config?.req?.accept ? (!!it.config?.req?.accept?.find(sit => rr.reqHasAcceptHeader(sit))) : true);
-
                         // console.dir(methods, {depth: 5});
-
                         if (methods[0]) {
                             const it = methods[0];
                             const paramTypes = ReflectUtils.getParameterTypes(moduleInstance, it.propertyKey)
@@ -188,20 +194,17 @@ export class SimpleBootHttpServer extends SimpleApplication {
                                 const execute = typeof it.config.resolver === 'function' ? this.simstanceManager.getOrNewSim(it.config.resolver) : it.config.resolver;
                                 data = await execute?.resolve?.(data, rr);
                             }
-
                             const status = it.config?.res?.status ?? HttpStatus.Ok;
                             const headers = it.config?.res?.header ?? {};
                             if (it.config?.res?.contentType) {
                                 headers[HttpHeaders.ContentType] = it.config?.res?.contentType;
                             }
-
                             // console.log('--?', routerModule, typeof routerModule, typeof routerModule === 'object');
                             if ((it.config?.res?.contentType?.toLowerCase().indexOf(Mimes.ApplicationJson.toLowerCase()) ?? -1) > -1) {
                                 data = JSON.stringify(data);
                             } else if (data && typeof data === 'object') {
                                 data = JSON.stringify(data);
                             }
-
                             rr.resSetHeaders(headers)
                             rr.resSetStatusCode(status);
                             rr.resWrite(data);

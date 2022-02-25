@@ -1,10 +1,7 @@
-import { Filter } from './Filter';
+import {Filter} from './Filter';
 import {HttpStatus} from '../codes/HttpStatus';
 import {SimpleBootHttpServer} from '../SimpleBootHttpServer';
 import {RequestResponse} from '../models/RequestResponse';
-import {RouterMetadataKey} from 'simple-boot-core/decorators/SimDecorator';
-import {SimAtomic} from 'simple-boot-core/simstance/SimAtomic';
-import {ConstructorType} from 'simple-boot-core/types/Types';
 import {getUrlMappings} from '../decorators/MethodMapping';
 
 type MethodType = {
@@ -58,7 +55,7 @@ export type OpenApiType = {
             email?: string;
         }
     }
-    servers?: {url: string}[],
+    servers?: { url: string }[],
     paths?: PathsType
     components?: {
         schemas?: {
@@ -110,7 +107,7 @@ export type OpenApi3FilterConfig = {
             email?: string;
         }
     }
-    servers?: {url: string}[],
+    servers?: { url: string }[],
 }
 const DefulatData: OpenApiType = {
     openapi: '3.0.1',
@@ -123,13 +120,12 @@ const DefulatData: OpenApiType = {
 export class OpenApi3Filter implements Filter {
     private openApiConfig: any;
 
-    constructor(public config: {path: string, excludePath?: {method: string, path: string}[]}, openApiConfig?: OpenApi3FilterConfig) {
+    constructor(public config: { path: string, excludePath?: { method: string, path: string }[] }, openApiConfig?: OpenApi3FilterConfig) {
         this.openApiConfig = Object.assign(Object.assign({}, DefulatData), openApiConfig ?? {})
     }
 
     async before(rr: RequestResponse, app: SimpleBootHttpServer) {
         if (rr.reqUrl === this.config.path) {
-            //////////////
             const map = app.routerManager.routingMap();
             // let routers = app.simstanceManager.getSimAtomics().filter((it: SimAtomic) => it.getConfig(RouterMetadataKey));
             // console.log('--routers--', map);
@@ -137,13 +133,12 @@ export class OpenApi3Filter implements Filter {
                 paths: {} as PathsType
             } as OpenApiType;
 
-            Object.entries(map).filter(([k, v])=>typeof v !== 'string').forEach(([k, v]) => {
-                const method = data.paths![k] = {
-                } as PathType;
+            Object.entries(map).filter(([k, v]) => typeof v !== 'string').forEach(([k, v]) => {
+                const method = data.paths![k] = {} as PathType;
                 getUrlMappings(v)?.forEach(it => {
                     method[it.config.method] = {
                         summary: it.propertyKey,
-                        description: it.propertyKey,
+                        description: it.propertyKey
                         // operationId: it.operationId,
                         // parameters: it.parameters,
                         // responses: it.responses,
@@ -160,5 +155,4 @@ export class OpenApi3Filter implements Filter {
     async after(rr: RequestResponse, app: SimpleBootHttpServer) {
         return true;
     }
-
 }
