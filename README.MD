@@ -3,7 +3,8 @@ SIMPLE-BOOT-HTTP-SERVER
 http web server
 ![typescript](https://img.shields.io/badge/-typescript-black?logo=typescript) [![typescript](https://img.shields.io/badge/-npm-black?logo=npm)](https://www.npmjs.com/package/simple-boot-http-server) [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE.md)
 
-* Filter.
+* URL, Method, Mapping
+* Filter
 * EndPoint
 * Advice(ExceptionHandler)
 
@@ -43,6 +44,43 @@ npx ts-node index.ts
 curl -XGET http://localhost:8081
 #result: {"name": "visualkhh"}
 ```
+
+
+## URL, Method, Mapping
+### URL MAPPING
+* @Route({path: '/'})
+### METHOD MAPPING
+> * @GET
+> * @POST
+> * @PATCH
+> * @OPTIONS
+> * @HEAD
+> * @TRACE
+> * @CONNECT
+> * OTHER
+>   * @UrlMapping
+### Method Decorator options
+```typescript
+export type MappingConfig = {
+    method: HttpMethod | string,
+    description?: {
+        name?: string;
+        detail?: string;
+    };
+
+    req?: {
+        contentType?: (Mimes|string)[];
+        accept?: (Mimes|string)[];
+    };
+
+    res?: {
+        status?: number;
+        header?: {[key: string]: string};
+        contentType?: Mimes | string;
+    }
+    resolver?: Resolver|ConstructorType<Resolver>;
+}
+```  
 
 
 ## Filter
