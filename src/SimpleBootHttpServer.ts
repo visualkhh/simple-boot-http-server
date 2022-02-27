@@ -30,7 +30,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
         super(rootRouter, option);
     }
 
-    public async run(otherInstanceSim?: Map<ConstructorType<any>, any>) {
+    public async run(otherInstanceSim?: Map<ConstructorType<any>, any>): Promise<SimpleBootHttpServer> {
         super.run(otherInstanceSim);
         const server = this.option.serverOption ? new Server(this.option.serverOption) : new Server();
         server.on('request', async (req: IncomingMessage, res: ServerResponse) => {
@@ -115,7 +115,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
                         } else {
                             methods.push(...(getUrlMappings(moduleInstance).filter(it => !getRoute(moduleInstance, it.propertyKey)) ?? []));
                         }
-                        
+
                         methods = methods.filter(it => it && it.propertyKey && it.config && rr.reqMethod()?.toUpperCase() === it.config.method.toUpperCase());
                         methods.sort((a, b) => {
                             return ((b.config?.req?.contentType?.length ?? 0) + (b.config?.req?.accept?.length ?? 0)) - ((a.config?.req?.contentType?.length ?? 0) + (a.config?.req?.accept?.length ?? 0));
@@ -244,29 +244,8 @@ export class SimpleBootHttpServer extends SimpleApplication {
             if (!rr.resIsDone()) {
                 rr.resEnd();
             }
-
         });
         server.listen(this.option.listen.port, this.option.listen.hostname, this.option.listen.backlog, this.option.listen.listeningListener);
-        // server.on('request', (req: IncomingMessage, res: ServerResponse) => {
-        //     this.option.filters.forEach(it => it.on?.(req, res));
-        //     const url = new URL(req.url!, 'http://' + req.headers.host);
-        //     const intent = new Intent(req.url ?? '', url);
-        //     this.routing(intent).then(it => {
-        //         console.log('routing-->', it)
-        //         const moduleInstance = it.getModuleInstance<any>();
-        //         this.option.filters.forEach(it => it.before?.(req, res, moduleInstance));
-        //         if (moduleInstance) {
-        //             moduleInstance?.onReceive?.(req, res);
-        //         } else {
-        //             it.router?.onNotFoundReceiver?.(req, res);
-        //         }
-        //         this.option.filters.slice().reverse().forEach(it => it.after?.(req, res, moduleInstance));
-        //         res.end();
-        //     }).catch(it => {
-        //         console.log('catch-->', it)
-        //     })
-        // });
-        // server.listen(this.option.listen.port, this.option.listen.hostname, this.option.listen.backlog, this.option.listen.listeningListener)
         return this;
     }
 }

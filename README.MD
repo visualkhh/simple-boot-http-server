@@ -1,53 +1,118 @@
 SIMPLE-BOOT-HTTP-SERVER
 ===
+http web server
+![typescript](https://img.shields.io/badge/-typescript-black?logo=typescript) [![typescript](https://img.shields.io/badge/-npm-black?logo=npm)](https://www.npmjs.com/package/simple-boot-http-server) [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE.md)
+
+* Filter.
+* EndPoint
+* Advice(ExceptionHandler)
+
+## 🚀 Quick start
+```shell
+npm init -y
+npm install simple-boot-http-server
+tsc --init --experimentalDecorators --emitDecoratorMetadata
+```
 
 ```typescript
-// @ts-ignore
-const httpServerOption = new HttpServerOption();
-httpServerOption.filters = [new FirstFilter()];
-new SimpleBootHttpServer(AppRouter, httpServerOption).run();
-console.log('simple-boot-http-server start host:' + (httpServerOption.listen.hostname ?? 'localhost'), ' port:' + httpServerOption.listen.port);
-```
-```typescript
-@Sim()
-@Router({
-    path: '',
-    route: {
-        '': '/',
-        '/': Hello
-    }
-})
+import {Sim} from 'simple-boot-core/decorators/SimDecorator';
+import {Route, Router} from 'simple-boot-core/decorators/route/Router';
+import {GET} from 'simple-boot-http-server/decorators/MethodMapping';
+import {Mimes} from 'simple-boot-http-server/codes/Mimes';
+import {RequestResponse} from 'simple-boot-http-server/models/RequestResponse';
+import {ReqHeader} from 'simple-boot-http-server/models/datas/ReqHeader';
+import {RouterModule} from 'simple-boot-core/route/RouterModule';
+
+@Sim() @Router({path: ''})
 export class AppRouter {
-    constructor() {
+    @Route({path: '/'}) @GET({res: {contentType: Mimes.ApplicationJson}})
+    index(rr: RequestResponse, header: ReqHeader, routerModule: RouterModule) {
+        return {name: 'visualkhh'}
     }
 }
-
+new SimpleBootHttpServer(AppRouter).run().then(it => {
+    console.log('server starting..', it.option.listen)
+})
+// 💥 GET /
+// {"name": "visualkhh"}
 ```
-```typescript
-@Sim()
-export class Hello {
-
-    constructor() {
-    }
-
-    @GET()
-    get(rr: RequestResponse) {
-        console.log('load Hello.get()', rr);
-        rr.resSetHeader('Content-Type', 'application/json');
-        rr.resEnd(JSON.stringify({ a: 1 }));
-    }
-}
+```shell
+npx ts-node index.ts
 ```
+```shell
+curl -XGET http://localhost:8081
+#result: {"name": "visualkhh"}
+```
+
+
+## Filter
+return
+ - true: after call chain 
+ - false: after NoCall chain
 ```typescript
 export class FirstFilter implements Filter {
-    async after(rr: RequestResponse, app: SimpleBootHttpServer, sw: boolean): Promise<boolean> {
-        console.log('filter after')
-        return true;
-    }
-
     async before(rr: RequestResponse, app: SimpleBootHttpServer): Promise<boolean> {
         console.log('filter before')
         return true;
     }
+    
+    async after(rr: RequestResponse, app: SimpleBootHttpServer, sw: boolean): Promise<boolean> {
+        console.log('filter after')
+        return true;
+    }    
 }
+const httpServerOption = new HttpServerOption({
+    filters: [new FirstFilter()]
+})
+new SimpleBootHttpServer(AppRouter, httpServerOption).run();
+// 💥 CALL
+// filter before
+// filter after
+```
+
+## Advice(ExceptionHandler)
+```typescript
+import {NotFoundError} from './NotFoundError';
+
+@Sim()
+export class Advice {
+    @ExceptionHandler({type: NotFoundError})
+    catch(rr: RequestResponse, e: any) {
+        rr.resSetHeaders({error: 'NotFound'});
+        console.log('exception--->', rr.reqUrl, e);
+    }
+}
+
+const httpServerOption = new HttpServerOption({
+    globalAdvice: Advice,
+    noSuchRouteEndPointMappingThrow: rr => new NotFoundError()
+});
+new SimpleBootHttpServer(AppRouter, httpServerOption).run();
+// 💥 CALL
+// exception---> NotFound
+```
+
+## EndPoint
+```typescript
+@Sim()
+class CloseEndPoint implements EndPoint {
+    async endPoint(rr: RequestResponse, app: SimpleBootHttpServer) {
+        console.log('close request response')
+    }
+}
+@Sim()
+class ErrorEndPoint implements EndPoint {
+    async endPoint(rr: RequestResponse, app: SimpleBootHttpServer) {
+        console.log('error')
+    }
+}
+const httpServerOption = new HttpServerOption({
+    errorEndPoints: [CloseEndPoint],
+    closeEndPoints: [ErrorEndPoint],
+});
+new SimpleBootHttpServer(AppRouter, httpServerOption).run();
+// 💥 normal CALL
+// close request response
+// 💥 error
+// error
 ```
