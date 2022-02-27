@@ -1,12 +1,17 @@
 SIMPLE-BOOT-HTTP-SERVER
 ===
-http web server
+http web server  
 ![typescript](https://img.shields.io/badge/-typescript-black?logo=typescript) [![typescript](https://img.shields.io/badge/-npm-black?logo=npm)](https://www.npmjs.com/package/simple-boot-http-server) [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE.md)
 
 * URL, Method, Mapping
 * Filter
 * EndPoint
 * Advice(ExceptionHandler)
+
+
+### dependencies  
+* simple-boot-core [![typescript](https://img.shields.io/badge/-npm-black?logo=npm)](https://www.npmjs.com/package/simple-boot-core) 
+
 
 ## 🚀 Quick start
 ```shell
