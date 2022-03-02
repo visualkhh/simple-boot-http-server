@@ -44,6 +44,9 @@
       }
     }
   },
+  "workspaces": [
+    "libs/simple-boot-core/dist"
+  ],
   "scripts": {
     "build": "rm -rf dist && tsc --outDir dist --declarationDir dist",
     "build:watch": "rm -rf dist && tsc --watch --outDir dist --declarationDir dist",
@@ -84,6 +87,6 @@
     "fast-json-patch": "^3.1.0",
     "mime-types": "^2.1.34",
     "reflect-metadata": "^0.1.13",
-    "simple-boot-core": "file:libs/simple-boot-core/dist"
+    "simple-boot-core": "^1.0.29"
   }
 }
