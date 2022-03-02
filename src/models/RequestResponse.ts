@@ -69,6 +69,7 @@ export class RequestResponse {
     get reqReadable() {
         return this.req.readable;
     }
+
     get reqIntent() {
         return new Intent(this.reqPathSearchParamUrl);
     }

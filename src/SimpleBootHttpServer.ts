@@ -8,10 +8,7 @@ import {HttpStatus} from './codes/HttpStatus';
 import {HttpHeaders} from './codes/HttpHeaders';
 import {Mimes} from './codes/Mimes';
 import {Filter} from './filters/Filter';
-import {
-    ExceptionHandlerSituationType,
-    targetExceptionHandler
-} from 'simple-boot-core/decorators/exception/ExceptionDecorator';
+import {ExceptionHandlerSituationType, targetExceptionHandler} from 'simple-boot-core/decorators/exception/ExceptionDecorator';
 import {getInject, SituationTypeContainer, SituationTypeContainers} from 'simple-boot-core/decorators/inject/Inject';
 import {EndPoint} from './endpoints/EndPoint';
 import {ReflectUtils} from 'simple-boot-core/utils/reflect/ReflectUtils';
@@ -30,9 +27,11 @@ export class SimpleBootHttpServer extends SimpleApplication {
         super(rootRouter, option);
     }
 
-    public async run(otherInstanceSim?: Map<ConstructorType<any>, any>): Promise<SimpleBootHttpServer> {
+    // @ts-ignore
+    public run(otherInstanceSim?: Map<ConstructorType<any>, any>): Promise<SimpleBootHttpServer> {
         super.run(otherInstanceSim);
         const server = this.option.serverOption ? new Server(this.option.serverOption) : new Server();
+        // const thisRef = this;
         server.on('request', async (req: IncomingMessage, res: ServerResponse) => {
             res.on('close', async () => {
                 if (this.option.closeEndPoints) {
@@ -103,14 +102,14 @@ export class SimpleBootHttpServer extends SimpleApplication {
 
                 // body.. something..
                 if (!rr.resIsDone()) {
-                    const routerModule = await this.routing(rr.reqIntent);
+                    const routerModule = await super.routing(rr.reqIntent);
                     otherStorage.set(RouterModule, routerModule);
                     const moduleInstance = routerModule?.getModuleInstance?.();
                     let methods: SaveMappingConfig[] = [];
                     if (routerModule && moduleInstance) {
                         // router 클래스 내부에서 선언된 Route일때
                         if (routerModule.propertyKeys) {
-                            const map = routerModule.propertyKeys?.map(it => { return {propertyKey: it, config: getUrlMapping(moduleInstance, it)} as SaveMappingConfig });
+                            const map = routerModule.propertyKeys?.map((it: string | symbol) => { return {propertyKey: it, config: getUrlMapping(moduleInstance, it)} as SaveMappingConfig });
                             methods.push(...(map ?? []));
                         } else {
                             methods.push(...(getUrlMappings(moduleInstance).filter(it => !getRoute(moduleInstance, it.propertyKey)) ?? []));
@@ -245,7 +244,12 @@ export class SimpleBootHttpServer extends SimpleApplication {
                 rr.resEnd();
             }
         });
-        server.listen(this.option.listen.port, this.option.listen.hostname, this.option.listen.backlog, this.option.listen.listeningListener);
-        return this;
+
+        return new Promise((resolve, reject) => {
+            server.listen(this.option.listen.port, this.option.listen.hostname, this.option.listen.backlog, () => {
+                this.option.listen.listeningListener?.();
+                resolve(this);
+            });
+        });
     }
 }

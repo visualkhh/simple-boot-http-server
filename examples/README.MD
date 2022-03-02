@@ -1,0 +1,29 @@
+SIMPLE-BOOT-HTTP-SERVER
+===
+## Examples 🚀 Quick start
+
+--- 
+
+### STEP 1
+```shell
+git submodule init
+git submodule update
+
+cd libs/simple-boot-core
+git checkout master
+npm run npm-build
+
+#cd root directory
+npm run npm-build
+```
+```shell
+npm start
+```
+
+
+### STEP 2
+```shell
+cd examples/{examples-name}
+npm install
+npm start
+```

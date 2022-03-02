@@ -9,11 +9,17 @@ import {UserRouter} from './UserRouter';
 
 @Sim()
 @Router({
-    path: '',
+    path: '/sub-apps',
     routers: [UserRouter]
 })
-export class AppRouter {
+export class SubAppRouter {
     constructor() {}
+
+    @Route({path: ''}) @GET({res: {contentType: Mimes.ApplicationJson}})
+    index(rr: RequestResponse, header: ReqHeader, routerModule: RouterModule) {
+        return {hello: 'world'}
+    }
+
     @Route({path: '/hello'}) @GET({res: {contentType: Mimes.ApplicationJson}})
     hh(rr: RequestResponse, header: ReqHeader, routerModule: RouterModule) {
         return {a: 2}
