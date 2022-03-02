@@ -45,7 +45,8 @@
     }
   },
   "workspaces": [
-    "libs/simple-boot-core/dist"
+    "libs/simple-boot-core/dist",
+    "../simple-boot-core/dist"
   ],
   "scripts": {
     "build": "rm -rf dist && tsc --outDir dist --declarationDir dist",

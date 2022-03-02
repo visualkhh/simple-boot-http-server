@@ -4,8 +4,9 @@ import {ServerOptions} from 'http';
 import {Filter} from '../filters/Filter';
 import { EndPoint } from '../endpoints/EndPoint';
 import {RequestResponse} from '../models/RequestResponse';
+import {SimpleBootHttpServer} from '../SimpleBootHttpServer';
 
-export type Listen = { port: number, hostname?: string, backlog?: number, listeningListener?: () => void };
+export type Listen = { port: number, hostname?: string, backlog?: number, listeningListener?: (server: SimpleBootHttpServer) => void };
 
 export class HttpServerOption extends SimOption {
     public serverOption?: ServerOptions;

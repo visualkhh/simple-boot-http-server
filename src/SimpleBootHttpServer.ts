@@ -244,6 +244,8 @@ export class SimpleBootHttpServer extends SimpleApplication {
                 rr.resEnd();
             }
         });
-        server.listen(this.option.listen.port, this.option.listen.hostname, this.option.listen.backlog, this.option.listen.listeningListener);
+        server.listen(this.option.listen.port, this.option.listen.hostname, this.option.listen.backlog, () => {
+            this.option.listen.listeningListener?.(this);
+        });
     }
 }
