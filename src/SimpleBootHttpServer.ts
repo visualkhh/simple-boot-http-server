@@ -27,8 +27,8 @@ export class SimpleBootHttpServer extends SimpleApplication {
         super(rootRouter, option);
     }
 
-    // @ts-ignore
-    public run(otherInstanceSim?: Map<ConstructorType<any>, any>): Promise<SimpleBootHttpServer> {
+
+    public run(otherInstanceSim?: Map<ConstructorType<any>, any>) {
         super.run(otherInstanceSim);
         const server = this.option.serverOption ? new Server(this.option.serverOption) : new Server();
         // const thisRef = this;
@@ -244,12 +244,6 @@ export class SimpleBootHttpServer extends SimpleApplication {
                 rr.resEnd();
             }
         });
-
-        return new Promise((resolve, reject) => {
-            server.listen(this.option.listen.port, this.option.listen.hostname, this.option.listen.backlog, () => {
-                this.option.listen.listeningListener?.();
-                resolve(this);
-            });
-        });
+        server.listen(this.option.listen.port, this.option.listen.hostname, this.option.listen.backlog, this.option.listen.listeningListener);
     }
 }
