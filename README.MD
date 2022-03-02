@@ -50,6 +50,8 @@ curl -XGET http://localhost:8081
 #result: {"name": "visualkhh"}
 ```
 
+# 😃 examples
+- [examples](./examples)
 
 ## URL, Method, Mapping
 ### URL MAPPING
