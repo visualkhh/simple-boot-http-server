@@ -22,6 +22,7 @@ import {ValidException} from 'simple-boot-core/errors/ValidException';
 import {HttpError} from './errors/HttpError';
 import {getRoute} from 'simple-boot-core/decorators/route/Router';
 import {OnInit} from './lifecycle/OnInit';
+import {URLSearchParams} from 'url';
 
 export class SimpleBootHttpServer extends SimpleApplication {
     constructor(public rootRouter: ConstructorType<Object>, public option: HttpServerOption = new HttpServerOption()) {

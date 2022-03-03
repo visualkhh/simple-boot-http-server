@@ -2,7 +2,7 @@ import {IncomingMessage, OutgoingHttpHeader, OutgoingHttpHeaders, ServerResponse
 import {HttpHeaders} from '../codes/HttpHeaders';
 import {Mimes} from '../codes/Mimes';
 import {Intent} from 'simple-boot-core/intent/Intent';
-import {URL} from 'url';
+import {URL, URLSearchParams} from 'url';
 import {Buffer} from 'buffer';
 import {MultipartData} from './datas/MultipartData';
 import {ReqFormUrlBody} from './datas/body/ReqFormUrlBody';
