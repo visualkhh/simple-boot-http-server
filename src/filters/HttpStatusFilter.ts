@@ -18,4 +18,7 @@ export class HttpStatusFilter implements Filter {
     async after(rr: RequestResponse, app: SimpleBootHttpServer) {
         return true;
     }
+
+    async onInit(app: SimpleBootHttpServer){
+    }
 }

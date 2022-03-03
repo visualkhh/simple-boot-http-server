@@ -6,7 +6,8 @@ import {SimpleBootHttpServer} from '../SimpleBootHttpServer';
 export class ThrowFilter implements Filter {
     constructor(private error: any) {
     }
-
+    async onInit(app: SimpleBootHttpServer){
+    }
     async before(rr: RequestResponse, app: SimpleBootHttpServer) {
         return true;
     }

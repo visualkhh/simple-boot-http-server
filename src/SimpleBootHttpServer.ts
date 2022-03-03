@@ -21,6 +21,7 @@ import {execValidationInValid, getValidIndex} from 'simple-boot-core/decorators/
 import {ValidException} from 'simple-boot-core/errors/ValidException';
 import {HttpError} from './errors/HttpError';
 import {getRoute} from 'simple-boot-core/decorators/route/Router';
+import {OnInit} from './lifecycle/OnInit';
 
 export class SimpleBootHttpServer extends SimpleApplication {
     constructor(public rootRouter: ConstructorType<Object>, public option: HttpServerOption = new HttpServerOption()) {
@@ -30,6 +31,13 @@ export class SimpleBootHttpServer extends SimpleApplication {
 
     public run(otherInstanceSim?: Map<ConstructorType<any>, any>) {
         super.run(otherInstanceSim);
+        const targets = [...this.option.closeEndPoints??[], ...this.option.errorEndPoints??[], ...this.option.requestEndPoints??[], ...this.option.filters??[]];
+        Promise.all(targets.map(it => (typeof it === 'function' ? this.simstanceManager.getOrNewSim(it as ConstructorType<any>) : it) as OnInit).map(it => it.onInit(this))).then(it => {
+            this.startServer();
+        });
+    }
+
+    private startServer() {
         const server = this.option.serverOption ? new Server(this.option.serverOption) : new Server();
         // const thisRef = this;
         server.on('request', async (req: IncomingMessage, res: ServerResponse) => {

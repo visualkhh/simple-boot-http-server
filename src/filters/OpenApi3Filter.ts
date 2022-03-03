@@ -123,7 +123,8 @@ export class OpenApi3Filter implements Filter {
     constructor(public config: { path: string, excludePath?: { method: string, path: string }[] }, openApiConfig?: OpenApi3FilterConfig) {
         this.openApiConfig = Object.assign(Object.assign({}, DefulatData), openApiConfig ?? {})
     }
-
+    async onInit(app: SimpleBootHttpServer){
+    }
     async before(rr: RequestResponse, app: SimpleBootHttpServer) {
         if (rr.reqUrl === this.config.path) {
             const map = app.routerManager.routingMap();
