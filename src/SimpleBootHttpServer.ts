@@ -42,7 +42,6 @@ export class SimpleBootHttpServer extends SimpleApplication {
         const server = this.option.serverOption ? new Server(this.option.serverOption) : new Server();
         // const thisRef = this;
         server.on('request', async (req: IncomingMessage, res: ServerResponse) => {
-            console.log('on Request--------->')
             res.on('close', async () => {
                 if (this.option.closeEndPoints) {
                     for (const it of this.option.closeEndPoints) {
