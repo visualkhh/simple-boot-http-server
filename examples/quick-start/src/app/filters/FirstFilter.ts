@@ -3,6 +3,9 @@ import {SimpleBootHttpServer} from 'simple-boot-http-server';
 import {RequestResponse} from 'simple-boot-http-server/models/RequestResponse';
 
 export class FirstFilter implements Filter {
+    async onInit(app: SimpleBootHttpServer) {
+    }
+
     before(rr: RequestResponse, app: SimpleBootHttpServer): Promise<boolean> {
         console.log('filter before')
         rr.resSetHeader('zz222', '12221')

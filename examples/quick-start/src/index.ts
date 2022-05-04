@@ -1,6 +1,5 @@
 import {HttpServerOption} from 'simple-boot-http-server/option/HttpServerOption';
 import {SimpleBootHttpServer} from 'simple-boot-http-server';
-// import {AppRouter} from './app/AppRouter';
 import {FirstFilter} from './app/filters/FirstFilter';
 import {NotFoundError} from 'simple-boot-http-server/errors/NotFoundError';
 import {Advice} from './app/advices/Advice';
@@ -23,12 +22,18 @@ export class AppRouter {
 
 @Sim()
 class CloseEndPoint implements EndPoint {
+    async onInit(app: SimpleBootHttpServer) {
+    }
+
     async endPoint(rr: RequestResponse, app: SimpleBootHttpServer) {
         console.log('close request response')
     }
 }
 @Sim()
 class ErrorEndPoint implements EndPoint {
+    async onInit(app: SimpleBootHttpServer) {
+    }
+
     async endPoint(rr: RequestResponse, app: SimpleBootHttpServer) {
         console.log('error')
     }
@@ -42,7 +47,9 @@ const httpServerOption = new HttpServerOption({
 });
 
 (async () => {
-    const app = (await new SimpleBootHttpServer(AppRouter, httpServerOption).run()) as SimpleBootHttpServer
+    const app = new SimpleBootHttpServer(AppRouter, httpServerOption);
+    app.run();
+    // const app = (await simpleBootHttpServer.run()) as SimpleBootHttpServer
     console.log('start up', app.option.listen);
 })();
 

@@ -29,10 +29,9 @@ export class SimpleBootHttpServer extends SimpleApplication {
         super(rootRouter, option);
     }
 
-
     public run(otherInstanceSim?: Map<ConstructorType<any>, any>) {
         super.run(otherInstanceSim);
-        const targets = [...this.option.closeEndPoints??[], ...this.option.errorEndPoints??[], ...this.option.requestEndPoints??[], ...this.option.filters??[]];
+        const targets = [...this.option.closeEndPoints ?? [], ...this.option.errorEndPoints ?? [], ...this.option.requestEndPoints ?? [], ...this.option.filters ?? []];
         Promise.all(targets.map(it => (typeof it === 'function' ? this.simstanceManager.getOrNewSim(it as ConstructorType<any>) : it) as OnInit).map(it => it.onInit(this))).then(it => {
             this.startServer();
         });
