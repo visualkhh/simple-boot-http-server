@@ -270,7 +270,7 @@ export class RequestResponse {
 
     // eslint-disable-next-line no-undef
     resWriteJson(chunk: any, encoding: BufferEncoding = 'utf8') {
-        return this.resWrite(this.resWrite(JSON.stringify(chunk), encoding));
+        return this.resWrite(JSON.stringify(chunk), encoding);
     }
 
     resSetHeader(key: HttpHeaders | string, value: string | string[]) {
