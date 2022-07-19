@@ -8,14 +8,16 @@ import {SimpleBootHttpServer} from '../SimpleBootHttpServer';
 import {RequestResponse} from '../models/RequestResponse';
 
 export class ResourceFilter implements Filter {
-    constructor(private resourceDistPath: string, private resourceRegex: string[] = []) {
+    constructor(private resourceDistPath: string, private resourceRegex: (string|RegExp)[] = []) {
     }
     async onInit(app: SimpleBootHttpServer){
     }
     async before(rr: RequestResponse, app: SimpleBootHttpServer) {
         const url = (rr.reqUrl ?? '').replace(/\.\./g, '');
         let sw = true;
-        const regExps = this.resourceRegex.filter(it => RegExp(it).test(url))
+        const regExps = this.resourceRegex.filter(it => {
+            return it instanceof RegExp ? it.test(url) : RegExp(it).test(url);
+        })
         // eslint-disable-next-line no-unused-vars
         for (const it of regExps) {
             const resourcePath = path.join(this.resourceDistPath, url); // url.replace(it, '')
