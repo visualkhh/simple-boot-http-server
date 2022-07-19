@@ -21,6 +21,8 @@ tsc --init --experimentalDecorators --emitDecoratorMetadata
 ```
 
 ```typescript
+import {HttpServerOption} from 'simple-boot-http-server/option/HttpServerOption';
+import {SimpleBootHttpServer} from 'simple-boot-http-server';
 import {Sim} from 'simple-boot-core/decorators/SimDecorator';
 import {Route, Router} from 'simple-boot-core/decorators/route/Router';
 import {GET} from 'simple-boot-http-server/decorators/MethodMapping';
@@ -36,9 +38,18 @@ export class AppRouter {
         return {name: 'visualkhh'}
     }
 }
-new SimpleBootHttpServer(AppRouter).run().then(it => {
-    console.log('server starting..', it.option.listen)
-})
+
+const httpServerOption = new HttpServerOption({
+    listen: {
+        listeningListener: (server, httpServer) => {
+            console.log('server on', httpServer.address());
+        }
+    }
+});
+
+const app = new SimpleBootHttpServer(AppRouter, httpServerOption);
+app.run();
+
 // 💥 GET /
 // {"name": "visualkhh"}
 ```
@@ -107,9 +118,16 @@ export class FirstFilter implements Filter {
     }    
 }
 const httpServerOption = new HttpServerOption({
-    filters: [new FirstFilter()]
-})
-new SimpleBootHttpServer(AppRouter, httpServerOption).run();
+    filters: [new FirstFilter()],
+    listen: {
+        listeningListener: (server, httpServer) => {
+            console.log('server on', httpServer.address());
+        }
+    }
+});
+
+const app = new SimpleBootHttpServer(AppRouter, httpServerOption);
+app.run();
 // 💥 CALL
 // filter before
 // filter after
@@ -130,9 +148,16 @@ export class Advice {
 
 const httpServerOption = new HttpServerOption({
     globalAdvice: Advice,
-    noSuchRouteEndPointMappingThrow: rr => new NotFoundError()
+    noSuchRouteEndPointMappingThrow: rr => new NotFoundError(),
+    listen: {
+        listeningListener: (server, httpServer) => {
+            console.log('server on', httpServer.address());
+        }
+    }
 });
-new SimpleBootHttpServer(AppRouter, httpServerOption).run();
+
+const app = new SimpleBootHttpServer(AppRouter, httpServerOption);
+app.run();
 // 💥 CALL
 // exception---> NotFound
 ```
@@ -154,8 +179,15 @@ class ErrorEndPoint implements EndPoint {
 const httpServerOption = new HttpServerOption({
     errorEndPoints: [CloseEndPoint],
     closeEndPoints: [ErrorEndPoint],
+    listen: {
+        listeningListener: (server, httpServer) => {
+            console.log('server on', httpServer.address());
+        }
+    }
 });
-new SimpleBootHttpServer(AppRouter, httpServerOption).run();
+
+const app = new SimpleBootHttpServer(AppRouter, httpServerOption);
+app.run();
 // 💥 normal CALL
 // close request response
 // 💥 error

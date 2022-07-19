@@ -25,20 +25,23 @@ import {OnInit} from './lifecycle/OnInit';
 import {URLSearchParams} from 'url';
 
 export class SimpleBootHttpServer extends SimpleApplication {
+    public server?: Server;
     constructor(public rootRouter: ConstructorType<Object>, public option: HttpServerOption = new HttpServerOption()) {
         super(rootRouter, option);
     }
 
     public run(otherInstanceSim?: Map<ConstructorType<any>, any>) {
-        super.run(otherInstanceSim);
+        const simstanceManager = super.run(otherInstanceSim);
         const targets = [...this.option.closeEndPoints ?? [], ...this.option.errorEndPoints ?? [], ...this.option.requestEndPoints ?? [], ...this.option.filters ?? []];
         Promise.all(targets.map(it => (typeof it === 'function' ? this.simstanceManager.getOrNewSim(it as ConstructorType<any>) : it) as OnInit).map(it => it.onInit(this))).then(it => {
             this.startServer();
         });
+        return simstanceManager;
     }
 
     private startServer() {
         const server = this.option.serverOption ? new Server(this.option.serverOption) : new Server();
+        this.server = server;
         // const thisRef = this;
         server.on('request', async (req: IncomingMessage, res: ServerResponse) => {
             res.on('close', async () => {
@@ -117,7 +120,9 @@ export class SimpleBootHttpServer extends SimpleApplication {
                     if (routerModule && moduleInstance) {
                         // router 클래스 내부에서 선언된 Route일때
                         if (routerModule.propertyKeys) {
-                            const map = routerModule.propertyKeys?.map((it: string | symbol) => { return {propertyKey: it, config: getUrlMapping(moduleInstance, it)} as SaveMappingConfig });
+                            const map = routerModule.propertyKeys?.map((it: string | symbol) => {
+                                return {propertyKey: it, config: getUrlMapping(moduleInstance, it)} as SaveMappingConfig
+                            });
                             methods.push(...(map ?? []));
                         } else {
                             methods.push(...(getUrlMappings(moduleInstance).filter(it => !getRoute(moduleInstance, it.propertyKey)) ?? []));
@@ -253,7 +258,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
             }
         });
         server.listen(this.option.listen.port, this.option.listen.hostname, this.option.listen.backlog, () => {
-            this.option.listen.listeningListener?.(this);
+            this.option.listen.listeningListener?.(this, server);
         });
     }
 }
