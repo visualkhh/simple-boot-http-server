@@ -214,7 +214,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
                                 data = JSON.stringify(data);
                             }
                             rr.resSetHeaders(headers)
-                            rr.resSetStatusCode(status);
+                            rr.resSetStatusCode(status); 
                             rr.resWrite(data);
                         }
                     }

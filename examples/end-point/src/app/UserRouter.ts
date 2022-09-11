@@ -2,7 +2,7 @@ import {Sim} from 'simple-boot-core/decorators/SimDecorator';
 import {Route, Router} from 'simple-boot-core/decorators/route/Router';
 import {GET} from 'simple-boot-http-server/decorators/MethodMapping';
 
-@Sim()
+@Sim
 @Router({
     path: '/users',
     route: {

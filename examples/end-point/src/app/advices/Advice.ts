@@ -3,7 +3,7 @@ import {ExceptionHandler, ExceptionHandlerSituationType} from 'simple-boot-core/
 import {RequestResponse} from 'simple-boot-http-server/models/RequestResponse';
 import {Inject} from 'simple-boot-core/decorators/inject/Inject';
 
-@Sim()
+@Sim
 export class Advice {
     @ExceptionHandler()
     catch(rr: RequestResponse, @Inject({situationType: ExceptionHandlerSituationType.ERROR_OBJECT}) e: any) {

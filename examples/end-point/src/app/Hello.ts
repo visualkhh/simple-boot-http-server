@@ -11,7 +11,7 @@ import {ReqHeader} from 'simple-boot-http-server/models/datas/ReqHeader';
 import {RouterModule} from 'simple-boot-core/route/RouterModule';
 import {ExceptionHandler} from 'simple-boot-core/decorators/exception/ExceptionDecorator';
 
-@Sim()
+@Sim
 export class Hello {
     constructor() {
     }

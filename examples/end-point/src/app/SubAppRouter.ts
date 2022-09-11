@@ -7,7 +7,7 @@ import {RouterModule} from 'simple-boot-core/route/RouterModule';
 import {Mimes} from 'simple-boot-http-server/codes/Mimes';
 import {UserRouter} from './UserRouter';
 
-@Sim()
+@Sim
 @Router({
     path: '/sub-apps',
     routers: [UserRouter]
