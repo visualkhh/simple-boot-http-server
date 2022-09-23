@@ -13,6 +13,11 @@ export class CrossDomainHeaderEndPoint implements EndPoint {
     constructor(private config: CrossDomainHeaderEndPointConfig) {
     }
 
+    /*
+        rr.resSetHeader("Access-Control-Allow-Origin", "*")
+        rr.resSetHeader("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS")
+        rr.resSetHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+     */
     async endPoint(rr: RequestResponse, app: SimpleBootHttpServer) {
         if (this.config.accessControlAllowOrigin) {
             rr.resSetHeader(HttpHeaders.AccessControlAllowOrigin, Array.isArray(this.config.accessControlAllowOrigin) ? this.config.accessControlAllowOrigin.join(', ') : this.config.accessControlAllowOrigin);
