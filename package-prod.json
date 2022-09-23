@@ -1,6 +1,6 @@
 {
   "name": "simple-boot-http-server",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "main": "SimpleBootHttpServer.js",
   "license": "MIT",
   "description": "back end http server frameworks",

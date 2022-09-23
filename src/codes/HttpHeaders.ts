@@ -32,5 +32,7 @@ export enum HttpHeaders {
     IfUnmodifiedSince = 'If-Unmodified-Since',
     IfMatch = 'If-Match',
     IfNoneMatch = 'If-None-Match',
-    IfRange = 'If-Range'
+    IfRange = 'If-Range',
+    Allow = 'Allow',
+    Server = 'Server'
 }

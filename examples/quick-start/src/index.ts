@@ -39,6 +39,11 @@ export class AppRouter {
         return 'index.html'
     }
 
+    @Route({path: '/data'}) @GET({resolver: ResourceResorver})
+    gdata(rr: RequestResponse, header: ReqHeader, routerModule: RouterModule) {
+        return 'index.html'
+    }
+
     @Route({path: '/data'}) @POST
     data(rr: RequestResponse, header: ReqHeader, routerModule: RouterModule, @Inject({situationType: UrlMappingSituationType.REQ_FORM_URL_BODY}) data: {}) {
         return data

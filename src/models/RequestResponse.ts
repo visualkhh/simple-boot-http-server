@@ -9,7 +9,8 @@ import { ReqFormUrlBody } from './datas/body/ReqFormUrlBody';
 import { ReqJsonBody } from './datas/body/ReqJsonBody';
 import { ReqHeader } from './datas/ReqHeader';
 import { ReqMultipartFormBody } from './datas/body/ReqMultipartFormBody';
-const {gzip, ungzip} = require('node-gzip');
+import { HttpStatus } from '../codes/HttpStatus';
+import { gzip } from 'node-gzip';
 // https://masteringjs.io/tutorials/node/http-request
 // https://nodejs.org/ko/docs/guides/anatomy-of-an-http-transaction/
 export class RequestResponse {
@@ -216,9 +217,9 @@ export class RequestResponse {
 
     resStatusCode(code?: undefined): number;
     // eslint-disable-next-line no-dupe-class-members
-    resStatusCode(code: number): RequestResponseChain<number>;
+    resStatusCode(code: number | HttpStatus): RequestResponseChain<number>;
     // eslint-disable-next-line no-dupe-class-members
-    resStatusCode(code: number | undefined): number | RequestResponseChain<number> {
+    resStatusCode(code: number | undefined | HttpStatus): number | RequestResponseChain<number> {
         if (code) {
             this.res.statusCode = code;
             return new RequestResponseChain<number>(this.req, this.res, this.res.statusCode);

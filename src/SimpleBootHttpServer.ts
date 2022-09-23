@@ -23,6 +23,7 @@ import {HttpError} from './errors/HttpError';
 import {getRoute} from 'simple-boot-core/decorators/route/Router';
 import {OnInit} from './lifecycle/OnInit';
 import {URLSearchParams} from 'url';
+import { HttpMethod } from './codes/HttpMethod';
 
 export class SimpleBootHttpServer extends SimpleApplication {
     public server?: Server;
@@ -82,6 +83,10 @@ export class SimpleBootHttpServer extends SimpleApplication {
             });
 
             const rr = new RequestResponse(req, res);
+            /*
+                default setting first
+             */
+            rr.resSetHeader(HttpHeaders.Server, 'simple-boot-http-server');
             const otherStorage = new Map<ConstructorType<any>, any>();
             otherStorage.set(RequestResponse, rr);
             otherStorage.set(IncomingMessage, req);
@@ -128,6 +133,14 @@ export class SimpleBootHttpServer extends SimpleApplication {
                             methods.push(...(getUrlMappings(moduleInstance).filter(it => !getRoute(moduleInstance, it.propertyKey)) ?? []));
                         }
 
+                        // options로 요청오면은 allow로 넣고 그냥 200처리해야됨.
+                        if (rr.reqMethod()?.toUpperCase() === HttpMethod.OPTIONS.toUpperCase()) {
+                            rr.resSetHeader(HttpHeaders.Allow, methods.map(it => it.config.method).join(', '));
+                            rr.resStatusCode(HttpStatus.Ok);
+                        }
+
+
+                        // method 찾기
                         methods = methods.filter(it => it && it.propertyKey && it.config && rr.reqMethod()?.toUpperCase() === it.config.method.toUpperCase());
                         methods.sort((a, b) => {
                             return ((b.config?.req?.contentType?.length ?? 0) + (b.config?.req?.accept?.length ?? 0)) - ((a.config?.req?.contentType?.length ?? 0) + (a.config?.req?.accept?.length ?? 0));
@@ -135,6 +148,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
                         methods = methods
                             .filter(it => it.config?.req?.contentType ? (!!it.config?.req?.contentType?.find(sit => rr.reqHasContentTypeHeader(sit))) : true)
                             .filter(it => it.config?.req?.accept ? (!!it.config?.req?.accept?.find(sit => rr.reqHasAcceptHeader(sit))) : true);
+
                         if (methods[0]) {
                             const it = methods[0];
                             const paramTypes = ReflectUtils.getParameterTypes(moduleInstance, it.propertyKey)
@@ -222,7 +236,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
                         }
                     }
 
-                    if (this.option.noSuchRouteEndPointMappingThrow && methods.length <= 0) {
+                    if (this.option.noSuchRouteEndPointMappingThrow && methods.length <= 0 && rr.reqMethod()?.toUpperCase() !== HttpMethod.OPTIONS) {
                         throw this.option.noSuchRouteEndPointMappingThrow(rr);
                     }
                 }
