@@ -137,7 +137,7 @@ app.run();
 ```typescript
 import {NotFoundError} from './NotFoundError';
 
-@Sim()
+@Sim
 export class Advice {
     @ExceptionHandler({type: NotFoundError})
     catch(rr: RequestResponse, e: any) {
@@ -164,13 +164,13 @@ app.run();
 
 ## EndPoint
 ```typescript
-@Sim()
+@Sim
 class CloseEndPoint implements EndPoint {
     async endPoint(rr: RequestResponse, app: SimpleBootHttpServer) {
         console.log('close request response')
     }
 }
-@Sim()
+@Sim
 class ErrorEndPoint implements EndPoint {
     async endPoint(rr: RequestResponse, app: SimpleBootHttpServer) {
         console.log('error')

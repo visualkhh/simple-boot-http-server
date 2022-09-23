@@ -10,8 +10,10 @@ import {RequestResponse} from '../models/RequestResponse';
 export class ResourceFilter implements Filter {
     constructor(private resourceDistPath: string, private resourceRegex: (string|RegExp)[] = []) {
     }
-    async onInit(app: SimpleBootHttpServer){
+
+    async onInit(app: SimpleBootHttpServer) {
     }
+
     async before(rr: RequestResponse, app: SimpleBootHttpServer) {
         const url = (rr.reqUrl ?? '').replace(/\.\./g, '');
         let sw = true;
@@ -35,8 +37,7 @@ export class ResourceFilter implements Filter {
         return sw;
     }
 
-     async after(rr: RequestResponse, app: SimpleBootHttpServer) {
+    async after(rr: RequestResponse, app: SimpleBootHttpServer) {
         return true;
     }
-
 }

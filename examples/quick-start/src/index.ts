@@ -7,12 +7,51 @@ import {Mimes} from 'simple-boot-http-server/codes/Mimes';
 import {RequestResponse} from 'simple-boot-http-server/models/RequestResponse';
 import {ReqHeader} from 'simple-boot-http-server/models/datas/ReqHeader';
 import {RouterModule} from 'simple-boot-core/route/RouterModule';
+import { Resource } from 'simple-boot-http-server/models/datas/Resource';
+import { ResourceResorver } from 'simple-boot-http-server/resolvers/ResourceResorver';
 
-@Sim() @Router({path: ''})
+@Sim @Router({path: ''})
 export class AppRouter {
-    @Route({path: '/'}) @GET({res: {contentType: Mimes.ApplicationJson}})
+    // @Route({path: '/'}) @GET
+    // index(rr: RequestResponse, header: ReqHeader, routerModule: RouterModule) {
+    //     const resource = new Resource('index.html');
+    //     return resource.write(rr);
+    // }
+    //
+    // @Route({path: '/resources/index.css'}) @GET
+    // css(rr: RequestResponse, header: ReqHeader, routerModule: RouterModule) {
+    //     const resource = new Resource(rr);
+    //     console.log('------>', resource.absolutePath)
+    //     return resource.write(rr);
+    // }
+    //
+    // @Route({path: '/resources/img.png'}) @GET
+    // img(rr: RequestResponse, header: ReqHeader, routerModule: RouterModule) {
+    //     const resource = new Resource(rr);
+    //     console.log('------>', resource.absolutePath)
+    //     return resource.write(rr);
+    // }
+    @Route({path: '/'}) @GET({resolver: ResourceResorver})
     index(rr: RequestResponse, header: ReqHeader, routerModule: RouterModule) {
-        return {name: 'visualkhh'}
+        return 'index.html'
+    }
+
+    @Route({path: '/resources/index.css'}) @GET({resolver: ResourceResorver})
+    css(rr: RequestResponse, header: ReqHeader, routerModule: RouterModule) {
+    }
+
+    @Route({path: '/resources/img.png'}) @GET({resolver: ResourceResorver})
+    img(rr: RequestResponse, header: ReqHeader, routerModule: RouterModule) {
+    }
+
+    @Route({path: '/json'}) @GET({res: {contentType: Mimes.ApplicationJson}})
+    json(rr: RequestResponse, header: ReqHeader, routerModule: RouterModule) {
+        return {name: 'visualkhh222'}
+    }
+
+    @Route({path: ['/w', '/z']}) @GET({res: {contentType: Mimes.ApplicationJson}})
+    index2(rr: RequestResponse, header: ReqHeader, routerModule: RouterModule) {
+        return {name: 'visualkh99h' + rr.reqUrl}
     }
 }
 

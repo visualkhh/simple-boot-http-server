@@ -197,7 +197,10 @@ export class SimpleBootHttpServer extends SimpleApplication {
                                 target: moduleInstance,
                                 targetKey: it.propertyKey
                             }, otherStorage);
-                            // console.log('method resolver run-->', it.config?.resolver, routerModule);
+                            /*
+                                여기에서 정해진 타입 리턴에 따른 조치
+                                ...
+                             */
                             if (it.config?.resolver) {
                                 const execute = typeof it.config.resolver === 'function' ? this.simstanceManager.getOrNewSim(it.config.resolver) : it.config.resolver;
                                 data = await execute?.resolve?.(data, rr);
