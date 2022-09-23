@@ -9,6 +9,9 @@ import {ReqHeader} from 'simple-boot-http-server/models/datas/ReqHeader';
 import {RouterModule} from 'simple-boot-core/route/RouterModule';
 import { Resource } from 'simple-boot-http-server/models/datas/Resource';
 import { ResourceResorver } from 'simple-boot-http-server/resolvers/ResourceResorver';
+import { POST } from 'simple-boot-http-server/decorators/MethodMapping';
+import { Inject } from 'simple-boot-core/decorators/inject/Inject';
+import { UrlMappingSituationType } from 'simple-boot-http-server/decorators/MethodMapping';
 
 @Sim @Router({path: ''})
 export class AppRouter {
@@ -34,6 +37,11 @@ export class AppRouter {
     @Route({path: '/'}) @GET({resolver: ResourceResorver})
     index(rr: RequestResponse, header: ReqHeader, routerModule: RouterModule) {
         return 'index.html'
+    }
+
+    @Route({path: '/data'}) @POST
+    data(rr: RequestResponse, header: ReqHeader, routerModule: RouterModule, @Inject({situationType: UrlMappingSituationType.REQ_FORM_URL_BODY}) data: {}) {
+        return data
     }
 
     @Route({path: '/resources/index.css'}) @GET({resolver: ResourceResorver})

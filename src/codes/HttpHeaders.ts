@@ -1,6 +1,7 @@
 export enum HttpHeaders {
     ContentLength = 'Content-Length',
     ContentType = 'Content-Type',
+    ContentEncoding = 'Content-Encoding',
     Accept = 'Accept',
     Authorization = 'Authorization',
     CacheControl = 'Cache-Control',

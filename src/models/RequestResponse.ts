@@ -1,14 +1,15 @@
-import {IncomingMessage, OutgoingHttpHeader, OutgoingHttpHeaders, ServerResponse} from 'http';
-import {HttpHeaders} from '../codes/HttpHeaders';
-import {Mimes} from '../codes/Mimes';
-import {Intent} from 'simple-boot-core/intent/Intent';
-import {URL, URLSearchParams} from 'url';
-import {Buffer} from 'buffer';
-import {MultipartData} from './datas/MultipartData';
-import {ReqFormUrlBody} from './datas/body/ReqFormUrlBody';
-import {ReqJsonBody} from './datas/body/ReqJsonBody';
-import {ReqHeader} from './datas/ReqHeader';
-import {ReqMultipartFormBody} from './datas/body/ReqMultipartFormBody';
+import { IncomingMessage, OutgoingHttpHeader, OutgoingHttpHeaders, ServerResponse } from 'http';
+import { HttpHeaders } from '../codes/HttpHeaders';
+import { Mimes } from '../codes/Mimes';
+import { Intent } from 'simple-boot-core/intent/Intent';
+import { URL, URLSearchParams } from 'url';
+import { Buffer } from 'buffer';
+import { MultipartData } from './datas/MultipartData';
+import { ReqFormUrlBody } from './datas/body/ReqFormUrlBody';
+import { ReqJsonBody } from './datas/body/ReqJsonBody';
+import { ReqHeader } from './datas/ReqHeader';
+import { ReqMultipartFormBody } from './datas/body/ReqMultipartFormBody';
+const {gzip, ungzip} = require('node-gzip');
 // https://masteringjs.io/tutorials/node/http-request
 // https://nodejs.org/ko/docs/guides/anatomy-of-an-http-transaction/
 export class RequestResponse {
@@ -282,13 +283,24 @@ export class RequestResponse {
         return this.createRequestResponseChain();
     }
 
+    // 마지막 종료될때 타는거.
+    private async resEndChunk() {
+        const encoding = this.reqHeaderFirst(HttpHeaders.AcceptEncoding);
+        let data = this.resWriteChunk;
+        if (encoding?.includes('gzip')) {
+            data = await gzip(data);
+            this.resSetHeader(HttpHeaders.ContentEncoding, 'gzip');
+        }
+        this.res.end(data);
+    }
+
     async resEnd(chunk?: any) {
         this.resWriteChunk = chunk ?? this.resWriteChunk;
         if (this.req.readable) {
             await this.reqBodyData();
-            this.res.end(this.resWriteChunk);
+            await this.resEndChunk();
         } else {
-            this.res.end(this.resWriteChunk);
+            await this.resEndChunk();
         }
     }
 
