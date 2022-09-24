@@ -24,7 +24,7 @@
             },
             redirect: 'follow', // manual, *follow, error
             referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-            body: 'grant_type=authorization_code&client_id=48223ced2dea3592d3ee9feb94d70e04&redirect_uri=http://jarandashop.kr/Api/Member/Oauth2ClientCallback/kakao/&code=Lo38Ixez-HCS69F1vxDRL3FqxLu-9tzETH9Ofq1dTqve6IoFSTm2blWr9MqUoICMy-MrBAo9dBEAAAGDZIibdA'
+            body: 'grant_type=authorization_code&client_id=48223ced2d123&redirect_uri=http://vava.kr/Api/Member/Oauth2ClientCallback/kakao/&code=vava-vava-vava-vava'
         });
         return response.json(); // JSON 응답을 네이티브 JavaScript 객체로 파싱
     }
@@ -34,7 +34,7 @@
 
 
     document.querySelector('#btn').addEventListener('click', () => {
-        postData('http://10.32.206.99:8081/data', { redirect_uri: 'http://jarandashop.kr/Api/Member/Oauth2ClientCallback/kakao/', grant_type: 'authorization_code', client_id: '48223ced2dea3592d3ee9feb94d70e04', code: '8Il5oTzLnJy7kT5A3M9ctm6f2r5GwooZgV1PC76JedZ63LbxYYdIfEIPbLdqiCSwV8fK6go9dZwAAAGDZIUu0w' }).then((data) => {
+        postData('http://localhost:8081/data', { redirect_uri: 'http://vava.kr/Api/Member/Oauth2ClientCallback/kakao/', grant_type: 'authorization_code', client_id: 'vava', code: 'vava' }).then((data) => {
             console.log(data); // JSON 데이터가 `data.json()` 호출에 의해 파싱됨
         });
     })
