@@ -35,6 +35,7 @@ export class AppRouter {
     //     return resource.write(rr);
     // }
     @Route({path: '/'}) @GET({resolver: ResourceResorver})
+    @Route({path: '/good'})
     index(rr: RequestResponse, header: ReqHeader, routerModule: RouterModule) {
         return 'index.html'
     }
