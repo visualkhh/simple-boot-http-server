@@ -1,34 +1,55 @@
-import { IncomingMessage, OutgoingHttpHeader, OutgoingHttpHeaders, ServerResponse } from 'http';
-import { HttpHeaders } from '../codes/HttpHeaders';
-import { Mimes } from '../codes/Mimes';
-import { Intent } from 'simple-boot-core/intent/Intent';
-import { URL, URLSearchParams } from 'url';
-import { Buffer } from 'buffer';
-import { MultipartData } from './datas/MultipartData';
-import { ReqFormUrlBody } from './datas/body/ReqFormUrlBody';
-import { ReqJsonBody } from './datas/body/ReqJsonBody';
-import { ReqHeader } from './datas/ReqHeader';
-import { ReqMultipartFormBody } from './datas/body/ReqMultipartFormBody';
-import { HttpStatus } from '../codes/HttpStatus';
-import { gzip } from 'node-gzip';
+import {IncomingMessage, OutgoingHttpHeader, OutgoingHttpHeaders, ServerResponse} from 'http';
+import {HttpHeaders} from '../codes/HttpHeaders';
+import {Mimes} from '../codes/Mimes';
+import {Intent} from 'simple-boot-core/intent/Intent';
+import {URL, URLSearchParams} from 'url';
+import {Buffer} from 'buffer';
+import {MultipartData} from './datas/MultipartData';
+import {ReqFormUrlBody} from './datas/body/ReqFormUrlBody';
+import {ReqJsonBody} from './datas/body/ReqJsonBody';
+import {ReqHeader} from './datas/ReqHeader';
+import {ReqMultipartFormBody} from './datas/body/ReqMultipartFormBody';
+import {HttpStatus} from '../codes/HttpStatus';
+import {gzip} from 'node-gzip';
+import {SessionManager} from '../session/SessionManager';
 // https://masteringjs.io/tutorials/node/http-request
 // https://nodejs.org/ko/docs/guides/anatomy-of-an-http-transaction/
 export class RequestResponse {
     protected resWriteChunk: any;
     protected reqBodyChunk?: Buffer;
-    protected req: IncomingMessage;
-    protected res: ServerResponse;
+    // protected req: IncomingMessage;
+    // protected res: ServerResponse;
 
-    constructor(req: IncomingMessage, res: ServerResponse);
-    constructor(req: RequestResponse);
-    constructor(req: IncomingMessage | RequestResponse, res?: ServerResponse) {
-        if (req instanceof RequestResponse) {
-            this.req = req.req;
-            this.res = req.res;
-        } else {
-            this.req = req;
-            this.res = res!;
+    // constructor(req: IncomingMessage, res: ServerResponse);
+    // constructor(req: RequestResponse);
+    // constructor(req: IncomingMessage | RequestResponse, res?: ServerResponse) {
+    constructor(protected req: IncomingMessage, protected res: ServerResponse, private sessionManager: SessionManager) {
+        // this.req = req;
+        // this.res = res;
+        // if (req instanceof RequestResponse) {
+        //     this.req = req.req;
+        //     this.res = req.res;
+        // } else {
+        //     this.req = req;
+        //     this.res = res!;
+        // }
+    }
+
+    get reqCookieMap() {
+        let cookies = this.reqHeader(HttpHeaders.Cookie) ?? '';
+        if (Array.isArray(cookies)) {
+            cookies = cookies.join(';')
         }
+
+        const map = new Map<string, string>();
+        cookies.split(';').map(it => it.trim().split('=')).forEach(it => {
+            map.set(it[0], it[1]);
+        });
+        return map;
+    }
+
+    reqCookieGet(key: string) {
+        return this.reqCookieMap.get(key);
     }
 
     get reqRemoteAddress(): string | undefined {
@@ -103,7 +124,7 @@ export class RequestResponse {
     reqBodyMultipartFormData(): Promise<MultipartData<any>[]> {
         return new Promise<MultipartData<any>[]>((resolve, reject) => {
             let data = '';
-            this.req.on('data', (chunk) => data += chunk);
+            this.req.on('data', (chunk) => { data += chunk; });
             this.req.on('error', err => reject(err));
             this.req.on('end', () => {
                 if (this.reqHasContentTypeHeader(Mimes.MultipartFormData)) {
@@ -186,8 +207,8 @@ export class RequestResponse {
         return this.req.method?.toUpperCase();
     }
 
-    reqHeader(key: HttpHeaders | string, defaultValue?: string) {
-        return this.req.headers[key.toLowerCase()] ?? defaultValue;
+    reqHeader(key: HttpHeaders | string) {
+        return this.req.headers[key.toLowerCase()];
     }
 
     get reqHeaderObj(): ReqHeader {
@@ -222,7 +243,7 @@ export class RequestResponse {
     resStatusCode(code: number | undefined | HttpStatus): number | RequestResponseChain<number> {
         if (code) {
             this.res.statusCode = code;
-            return new RequestResponseChain<number>(this.req, this.res, this.res.statusCode);
+            return new RequestResponseChain<number>(this.req, this.res, this.sessionManager, this.res.statusCode);
         } else {
             return this.res.statusCode;
         }
@@ -237,11 +258,8 @@ export class RequestResponse {
         }
     }
 
-    reqSession(): { [key: string]: any } {
-        if ((this.req as any).simpleboot_session === undefined) {
-            (this.req as any).simpleboot_session = {};
-        }
-        return (this.req as any).simpleboot_session;
+    async reqSession(): Promise<{ [key: string]: any }> {
+        return (await this.sessionManager.session(this)).dataSet.data;
     }
 
     reqSessionSet(key: string, value: any): void {
@@ -326,7 +344,7 @@ export class RequestResponse {
     }
 
     createRequestResponseChain<T = any>(data?: T) {
-        const requestResponseChain = new RequestResponseChain(this.req, this.res, data);
+        const requestResponseChain = new RequestResponseChain(this.req, this.res, this.sessionManager, data);
         requestResponseChain.resWriteChunk = this.resWriteChunk;
         requestResponseChain.reqBodyChunk = this.reqBodyChunk;
         return requestResponseChain;
@@ -348,7 +366,7 @@ export class RequestResponse {
 }
 
 export class RequestResponseChain<T> extends RequestResponse {
-    constructor(req: IncomingMessage, res: ServerResponse, public result?: T) {
-        super(req, res);
+    constructor(req: IncomingMessage, res: ServerResponse, sessionManager: SessionManager, public result?: T) {
+        super(req, res, sessionManager);
     }
 }

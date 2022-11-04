@@ -1,17 +1,14 @@
+import {ResourceResorver} from 'simple-boot-http-server/resolvers/ResourceResorver';
+import {Inject} from 'simple-boot-core/decorators/inject/Inject';
 import {HttpServerOption} from 'simple-boot-http-server/option/HttpServerOption';
+import {RouterModule} from 'simple-boot-core/route/RouterModule';
+import {GET, POST, UrlMappingSituationType} from 'simple-boot-http-server/decorators/MethodMapping';
+import {Route, Router} from 'simple-boot-core/decorators/route/Router';
+import {RequestResponse} from 'simple-boot-http-server/models/RequestResponse';
+import {Mimes} from 'simple-boot-http-server/codes/Mimes';
 import {SimpleBootHttpServer} from 'simple-boot-http-server';
 import {Sim} from 'simple-boot-core/decorators/SimDecorator';
-import {Route, Router} from 'simple-boot-core/decorators/route/Router';
-import {GET} from 'simple-boot-http-server/decorators/MethodMapping';
-import {Mimes} from 'simple-boot-http-server/codes/Mimes';
-import {RequestResponse} from 'simple-boot-http-server/models/RequestResponse';
 import {ReqHeader} from 'simple-boot-http-server/models/datas/ReqHeader';
-import {RouterModule} from 'simple-boot-core/route/RouterModule';
-import { Resource } from 'simple-boot-http-server/models/datas/Resource';
-import { ResourceResorver } from 'simple-boot-http-server/resolvers/ResourceResorver';
-import { POST } from 'simple-boot-http-server/decorators/MethodMapping';
-import { Inject } from 'simple-boot-core/decorators/inject/Inject';
-import { UrlMappingSituationType } from 'simple-boot-http-server/decorators/MethodMapping';
 
 @Sim @Router({path: ''})
 export class AppRouter {
@@ -70,6 +67,9 @@ export class AppRouter {
 }
 
 const httpServerOption = new HttpServerOption({
+    sessionOption: {
+        expiredTime: 5000
+    },
     listen: {
         listeningListener: (server, httpServer) => {
             console.log('server on', httpServer.address());

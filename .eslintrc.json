@@ -18,6 +18,7 @@
         "@typescript-eslint"
     ],
     "rules": {
+        "no-dupe-class-members": "off",
         "no-useless-constructor": "off",
         "space-before-function-paren": "off",
         "object-curly-spacing": "off",

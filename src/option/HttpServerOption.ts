@@ -20,15 +20,17 @@ export class HttpServerOption extends SimOption {
     public requestEndPoints?: (EndPoint|ConstructorType<EndPoint>)[];
     public closeEndPoints?: (EndPoint|ConstructorType<EndPoint>)[];
     public errorEndPoints?: (EndPoint|ConstructorType<EndPoint>)[];
+    public sessionOption: {key: string, expiredTime: number, provider?: {uuids: () => Promise<string[]>, delete: (uuid: string) => Promise<void>, get: (uuid: string) => Promise<{ access: number, data?: any }>, set: (uuid: string, data: { access: number, data?: any }) => Promise<void>}};
     public globalAdvice?: any|ConstructorType<any>;
     public noSuchRouteEndPointMappingThrow?: (rr: RequestResponse) => any;
-    constructor({serverOption, listen, filters, requestEndPoints, closeEndPoints, errorEndPoints, globalAdvice, noSuchRouteEndPointMappingThrow}: {
+    constructor({serverOption, listen, filters, requestEndPoints, closeEndPoints, errorEndPoints, sessionOption, globalAdvice, noSuchRouteEndPointMappingThrow}: {
                 serverOption?: ServerOptions,
                 listen?: Listen,
                 filters?: (Filter|ConstructorType<Filter>)[],
                 requestEndPoints?: (EndPoint|ConstructorType<EndPoint>)[],
                 closeEndPoints?: (EndPoint|ConstructorType<EndPoint>)[],
                 errorEndPoints?: (EndPoint|ConstructorType<EndPoint>)[],
+                sessionOption?: {key?: string, expiredTime?: number, provider?: {uuids: () => Promise<string[]>, delete: (uuid: string) => Promise<void>, get: (uuid: string) => Promise<{ access: number, data?: any }>, set: (uuid: string, data: { access: number, data?: any }) => Promise<void>}},
                 globalAdvice?: any|ConstructorType<any>,
                 noSuchRouteEndPointMappingThrow?: (rr: RequestResponse) => any
                 } = {}, advice: ConstructorType<any>[] = []) {
@@ -39,6 +41,7 @@ export class HttpServerOption extends SimOption {
         this.requestEndPoints = requestEndPoints;
         this.closeEndPoints = closeEndPoints;
         this.errorEndPoints = errorEndPoints;
+        this.sessionOption = Object.assign({key: 'SBSESSIONID', expiredTime: 1000 * 60 * 30}, sessionOption);
         this.globalAdvice = globalAdvice;
         this.noSuchRouteEndPointMappingThrow = noSuchRouteEndPointMappingThrow;
     }

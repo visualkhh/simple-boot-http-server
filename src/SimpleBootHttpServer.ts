@@ -23,13 +23,17 @@ import {HttpError} from './errors/HttpError';
 import {getRoute} from 'simple-boot-core/decorators/route/Router';
 import {OnInit} from './lifecycle/OnInit';
 import {URLSearchParams} from 'url';
-import { HttpMethod } from './codes/HttpMethod';
+import {HttpMethod} from './codes/HttpMethod';
+import {SessionManager} from './session/SessionManager';
 
 export class SimpleBootHttpServer extends SimpleApplication {
     public server?: Server;
+    private sessionManager: SessionManager;
     constructor(public rootRouter: ConstructorType<Object>, public option: HttpServerOption = new HttpServerOption()) {
         super(rootRouter, option);
+        this.sessionManager = new SessionManager(this.option);
     }
+
 
     public run(otherInstanceSim?: Map<ConstructorType<any>, any>) {
         const simstanceManager = super.run(otherInstanceSim);
@@ -82,11 +86,17 @@ export class SimpleBootHttpServer extends SimpleApplication {
                 }
             });
 
-            const rr = new RequestResponse(req, res);
+            const rr = new RequestResponse(req, res, this.sessionManager);
             /*
                 default setting first
              */
             rr.resSetHeader(HttpHeaders.Server, 'simple-boot-http-server');
+            const cookie = rr.reqCookieGet(this.option.sessionOption.key);
+            if (!cookie) {
+                const session = await this.sessionManager.session();
+                rr.resSetHeader(HttpHeaders.SetCookie, `${this.option.sessionOption.key}=${session.uuid}; Path=/; HttpOnly`);
+            }
+
             const otherStorage = new Map<ConstructorType<any>, any>();
             otherStorage.set(RequestResponse, rr);
             otherStorage.set(IncomingMessage, req);
@@ -138,7 +148,6 @@ export class SimpleBootHttpServer extends SimpleApplication {
                             rr.resSetHeader(HttpHeaders.Allow, methods.map(it => it.config.method).join(', '));
                             rr.resStatusCode(HttpStatus.Ok);
                         }
-
 
                         // method 찾기
                         methods = methods.filter(it => it && it.propertyKey && it.config && rr.reqMethod()?.toUpperCase() === it.config.method.toUpperCase());
