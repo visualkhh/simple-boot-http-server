@@ -9,6 +9,7 @@ import {Mimes} from 'simple-boot-http-server/codes/Mimes';
 import {SimpleBootHttpServer} from 'simple-boot-http-server';
 import {Sim} from 'simple-boot-core/decorators/SimDecorator';
 import {ReqHeader} from 'simple-boot-http-server/models/datas/ReqHeader';
+import {Intent} from 'simple-boot-core/intent/Intent';
 
 @Sim @Router({path: ''})
 export class AppRouter {
@@ -31,7 +32,13 @@ export class AppRouter {
     //     console.log('------>', resource.absolutePath)
     //     return resource.write(rr);
     // }
-    @Route({path: '/'}) @GET({resolver: ResourceResorver})
+    @Route({
+        path: '/', filters: [{
+            isAccept(intent: Intent): boolean {
+                return true;
+            }
+        }]
+    }) @GET({resolver: ResourceResorver})
     @Route({path: '/good'})
     index(rr: RequestResponse, header: ReqHeader, routerModule: RouterModule) {
         return 'index.html'
