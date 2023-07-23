@@ -30,9 +30,9 @@ export class ResourceFilter implements Filter {
                 rr.resStatusCode(HttpStatus.Ok);
                 rr.resSetHeader(HttpHeaders.ContentType, mime.lookup(resourcePath).toString());
                 await rr.resEnd(fs.readFileSync(resourcePath));
-                sw = false;
                 break;
             }
+            sw = false;
         }
         return sw;
     }
