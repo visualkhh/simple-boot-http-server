@@ -25,6 +25,7 @@ import {OnInit} from './lifecycle/OnInit';
 import {URLSearchParams} from 'url';
 import {HttpMethod} from './codes/HttpMethod';
 import {SessionManager} from './session/SessionManager';
+import { InjectSituationType } from 'inject/InjectSituationType';
 
 export class SimpleBootHttpServer extends SimpleApplication {
     public server?: Server;
@@ -49,6 +50,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
         this.server = server;
         // const thisRef = this;
         server.on('request', async (req: IncomingMessage, res: ServerResponse) => {
+            const transactionManager = this.option.transactionManagerFactory ? await this.option.transactionManagerFactory() : undefined;
             res.on('close', async () => {
                 if (this.option.closeEndPoints) {
                     for (const it of this.option.closeEndPoints) {
@@ -102,6 +104,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
             otherStorage.set(IncomingMessage, req);
             otherStorage.set(ServerResponse, res);
             try {
+                transactionManager?.try();
                 if (this.option.requestEndPoints) {
                     for (const it of this.option.requestEndPoints) {
                         try {
@@ -166,6 +169,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
                             if (injects) {
                                 const isJson = injects.find(it => it.config?.situationType === UrlMappingSituationType.REQ_JSON_BODY);
                                 const isFormUrl = injects.find(it => it.config?.situationType === UrlMappingSituationType.REQ_FORM_URL_BODY);
+                                const isTransactionManager = injects.find(it => it.config?.situationType === InjectSituationType.TransactionManager);
                                 const siturationContainers = new SituationTypeContainers();
                                 if (isJson) {
                                     let data = await rr.reqBodyJsonData()
@@ -195,6 +199,14 @@ export class SimpleBootHttpServer extends SimpleApplication {
                                         }
                                     }
                                     siturationContainers.push(new SituationTypeContainer({situationType: UrlMappingSituationType.REQ_FORM_URL_BODY, data}));
+                                }
+
+                                if (isTransactionManager && isTransactionManager.type && transactionManager && transactionManager.hasTransaction(isTransactionManager.type)) {
+                                    let data = await transactionManager.getTransaction(isTransactionManager.type);
+                                    if (data) {
+                                        data = await data.try(isTransactionManager.config.argument);
+                                        siturationContainers.push(new SituationTypeContainer({situationType: InjectSituationType.TransactionManager, data, index: isTransactionManager.index}));
+                                    }
                                 }
                                 if (siturationContainers.length) {
                                     otherStorage.set(SituationTypeContainers, siturationContainers);
@@ -257,6 +269,7 @@ export class SimpleBootHttpServer extends SimpleApplication {
                     }
                 }
             } catch (e) {
+                transactionManager?.catch(e);
                 rr.resStatusCode(e instanceof HttpError ? e.status : HttpStatus.InternalServerError)
                 const execute = typeof this.option.globalAdvice === 'function' ? this.simstanceManager.getOrNewSim(this.option.globalAdvice) : this.option.globalAdvice;
                 if (!execute) {
@@ -277,6 +290,8 @@ export class SimpleBootHttpServer extends SimpleApplication {
                         targetKey: target.propertyKey
                     }, otherStorage);
                 }
+            } finally {
+                transactionManager?.finally();
             }
 
             if (!rr.resIsDone()) {

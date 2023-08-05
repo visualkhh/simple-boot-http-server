@@ -5,6 +5,7 @@ import {Filter} from '../filters/Filter';
 import { EndPoint } from '../endpoints/EndPoint';
 import {RequestResponse} from '../models/RequestResponse';
 import {SimpleBootHttpServer} from '../SimpleBootHttpServer';
+import { TransactionManager } from 'simple-boot-core/transaction/TransactionManager';
 
 export type Listen = { port?: number, hostname?: string, backlog?: number, listeningListener?: (server: SimpleBootHttpServer, httpServer: Server) => void };
 export interface ListenData extends Listen {
@@ -23,7 +24,8 @@ export class HttpServerOption extends SimOption {
     public sessionOption: {key: string, expiredTime: number, provider?: {uuids: () => Promise<string[]>, delete: (uuid: string) => Promise<void>, get: (uuid: string) => Promise<{ access: number, data?: any }>, set: (uuid: string, data: { access: number, data?: any }) => Promise<void>}};
     public globalAdvice?: any|ConstructorType<any>;
     public noSuchRouteEndPointMappingThrow?: (rr: RequestResponse) => any;
-    constructor({serverOption, listen, filters, requestEndPoints, closeEndPoints, errorEndPoints, sessionOption, globalAdvice, noSuchRouteEndPointMappingThrow}: {
+    public transactionManagerFactory?: () => TransactionManager;
+    constructor({serverOption, listen, filters, requestEndPoints, closeEndPoints, errorEndPoints, sessionOption, globalAdvice, noSuchRouteEndPointMappingThrow, transactionManagerFactory}: {
                 serverOption?: ServerOptions,
                 listen?: Listen,
                 filters?: (Filter|ConstructorType<Filter>)[],
@@ -32,7 +34,8 @@ export class HttpServerOption extends SimOption {
                 errorEndPoints?: (EndPoint|ConstructorType<EndPoint>)[],
                 sessionOption?: {key?: string, expiredTime?: number, provider?: {uuids: () => Promise<string[]>, delete: (uuid: string) => Promise<void>, get: (uuid: string) => Promise<{ access: number, data?: any }>, set: (uuid: string, data: { access: number, data?: any }) => Promise<void>}},
                 globalAdvice?: any|ConstructorType<any>,
-                noSuchRouteEndPointMappingThrow?: (rr: RequestResponse) => any
+                noSuchRouteEndPointMappingThrow?: (rr: RequestResponse) => any,
+                transactionManagerFactory?: () => TransactionManager
                 } = {}, advice: ConstructorType<any>[] = []) {
         super(advice);
         this.serverOption = serverOption;
@@ -44,5 +47,6 @@ export class HttpServerOption extends SimOption {
         this.sessionOption = Object.assign({key: 'SBSESSIONID', expiredTime: 1000 * 60 * 30}, sessionOption);
         this.globalAdvice = globalAdvice;
         this.noSuchRouteEndPointMappingThrow = noSuchRouteEndPointMappingThrow;
+        this.transactionManagerFactory = transactionManagerFactory;
     }
 }
