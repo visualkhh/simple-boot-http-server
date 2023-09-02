@@ -25,7 +25,7 @@ import {OnInit} from './lifecycle/OnInit';
 import {URLSearchParams} from 'url';
 import {HttpMethod} from './codes/HttpMethod';
 import {SessionManager} from './session/SessionManager';
-import { InjectSituationType } from 'inject/InjectSituationType';
+import { InjectSituationType } from './inject/InjectSituationType';
 
 export class SimpleBootHttpServer extends SimpleApplication {
     public server?: Server;
