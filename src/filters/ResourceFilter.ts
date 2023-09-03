@@ -2,10 +2,10 @@ import { Filter } from '../filters/Filter';
 import fs from 'fs';
 import path from 'path';
 import mime from 'mime-types';
-import {HttpHeaders} from '../codes/HttpHeaders';
-import {HttpStatus} from '../codes/HttpStatus';
-import {SimpleBootHttpServer} from '../SimpleBootHttpServer';
-import {RequestResponse} from '../models/RequestResponse';
+import { HttpHeaders } from '../codes/HttpHeaders';
+import { HttpStatus } from '../codes/HttpStatus';
+import { SimpleBootHttpServer } from '../SimpleBootHttpServer';
+import { RequestResponse } from '../models/RequestResponse';
 
 export class ResourceFilter implements Filter {
     constructor(private resourceDistPath: string, private resourceRegex: (string|RegExp)[] = []) {
@@ -23,6 +23,7 @@ export class ResourceFilter implements Filter {
         // eslint-disable-next-line no-unused-vars
         for (const it of regExps) {
             const resourcePath = path.join(this.resourceDistPath, url); // url.replace(it, '')
+            sw = false;
             if (fs.existsSync(resourcePath)) {
                 // const header = {} as any;
                 // header[HttpHeaders.ContentType] = mime.lookup(resourcePath);
@@ -31,6 +32,9 @@ export class ResourceFilter implements Filter {
                 rr.resSetHeader(HttpHeaders.ContentType, mime.lookup(resourcePath).toString());
                 await rr.resEnd(fs.readFileSync(resourcePath));
                 break;
+            } else {
+                rr.resStatusCode(HttpStatus.NotFound)
+                await rr.resEnd();
             }
             sw = false;
         }
