@@ -339,7 +339,7 @@ export class RequestResponse {
     }
 
     resIsDone() {
-        return this.res.finished || this.res.writableEnded;
+        return this.res.finished || this.res.writableEnded || this.res.headersSent;
         // return new RequestResponseChain(this.req, this.res, this.res.finished || this.res.writableEnded);
     }
 

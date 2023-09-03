@@ -273,7 +273,9 @@ export class SimpleBootHttpServer extends SimpleApplication {
                 rr.resStatusCode(e instanceof HttpError ? e.status : HttpStatus.InternalServerError)
                 const execute = typeof this.option.globalAdvice === 'function' ? this.simstanceManager.getOrNewSim(this.option.globalAdvice) : this.option.globalAdvice;
                 if (!execute) {
-                    rr.resEnd();
+                    rr.resEnd().catch(e => {
+
+                    });
                     return;
                 }
                 if (e && typeof e === 'object') {
