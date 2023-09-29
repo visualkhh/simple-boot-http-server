@@ -245,7 +245,6 @@ export class SimpleBootHttpServer extends SimpleApplication {
                             if (it.config?.res?.contentType) {
                                 headers[HttpHeaders.ContentType] = it.config?.res?.contentType;
                             }
-                            // console.log('--?', routerModule, typeof routerModule, typeof routerModule === 'object');
                             if ((it.config?.res?.contentType?.toLowerCase().indexOf(Mimes.ApplicationJson.toLowerCase()) ?? -1) > -1) {
                                 data = JSON.stringify(data);
                             } else if (data && typeof data === 'object') {

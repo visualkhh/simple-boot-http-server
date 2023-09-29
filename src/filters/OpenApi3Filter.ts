@@ -129,7 +129,6 @@ export class OpenApi3Filter implements Filter {
         if (rr.reqUrl === this.config.path) {
             const map = app.routerManager.routingMap();
             // let routers = app.simstanceManager.getSimAtomics().filter((it: SimAtomic) => it.getConfig(RouterMetadataKey));
-            // console.log('--routers--', map);
             const data = {
                 paths: {} as PathsType
             } as OpenApiType;
