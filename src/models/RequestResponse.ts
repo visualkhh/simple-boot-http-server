@@ -17,22 +17,25 @@ import {SessionManager} from '../session/SessionManager';
 export class RequestResponse {
     protected resWriteChunk: any;
     protected reqBodyChunk?: Buffer;
-    // protected req: IncomingMessage;
-    // protected res: ServerResponse;
+    protected req: IncomingMessage;
+    protected res: ServerResponse;
+    protected sessionManager?: SessionManager;
 
     // constructor(req: IncomingMessage, res: ServerResponse);
-    // constructor(req: RequestResponse);
-    // constructor(req: IncomingMessage | RequestResponse, res?: ServerResponse) {
-    constructor(protected req: IncomingMessage, protected res: ServerResponse, private sessionManager: SessionManager) {
+    constructor(req: RequestResponse);
+    constructor(req: IncomingMessage, res: ServerResponse, sessionManager?: SessionManager);
+    constructor(req: IncomingMessage | RequestResponse, res?: ServerResponse, sessionManager?: SessionManager) {
         // this.req = req;
         // this.res = res;
-        // if (req instanceof RequestResponse) {
-        //     this.req = req.req;
-        //     this.res = req.res;
-        // } else {
-        //     this.req = req;
-        //     this.res = res!;
-        // }
+        if (req instanceof RequestResponse) {
+            this.req = req.req;
+            this.res = req.res;
+            this.sessionManager = req.sessionManager;
+        } else {
+            this.req = req;
+            this.res = res!;
+            this.sessionManager = sessionManager;
+        }
     }
 
     get reqCookieMap() {
@@ -259,7 +262,11 @@ export class RequestResponse {
     }
 
     async reqSession(): Promise<{ [key: string]: any }> {
+        if (this.sessionManager) {
         return (await this.sessionManager.session(this)).dataSet.data;
+        } else {
+            return Promise.reject(new Error('Not SessionManager'));
+        }
     }
 
     reqSessionSet(key: string, value: any): void {
@@ -366,7 +373,7 @@ export class RequestResponse {
 }
 
 export class RequestResponseChain<T> extends RequestResponse {
-    constructor(req: IncomingMessage, res: ServerResponse, sessionManager: SessionManager, public result?: T) {
+    constructor(req: IncomingMessage, res: ServerResponse, sessionManager?: SessionManager, public result?: T) {
         super(req, res, sessionManager);
     }
 }
